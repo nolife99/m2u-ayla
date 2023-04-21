@@ -5,7 +5,6 @@ using StorybrewCommon.Storyboarding;
 using Melanchall.DryWetMidi.MusicTheory;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
-using Melanchall.DryWetMidi.Common;
 using System.Collections.Generic;
 using System.Linq;
 using System;
@@ -173,17 +172,15 @@ namespace StorybrewScripts
                 {
                     if (note.Length == 0) continue;
 
-                    note.Time = (long)(note.Time * offset + 25);
-                    note.Length = (long)(note.Length * offset + 25);
-                    note.Channel = (FourBitNumber)chunks.IndexOf(track);
+                    note.Time = (int)(note.Time * offset + 25);
+                    note.Length = (int)(note.Length * offset + 25);
 
                     var noteLength = note.Length * lengthMultiplier - .15f;
                     var noteWidth = int.TryParse(getKeyOffset(note.NoteName, 1).ToString(), out int o) ?
                         noteWidthScale * noteWidthBlackScale : noteWidthScale;
 
                     var n = pool.Get(note.Time - scrollTime, note.EndTime - cut);
-                    if (n.StartTime != double.MaxValue && (Vector2)n.ScaleAt(note.Time - scrollTime) != new Vector2(noteWidth, noteLength))
-                        n.ScaleVec(note.Time - scrollTime, noteWidth, noteLength);
+                    if (n.StartTime != double.MaxValue) n.ScaleVec(note.Time - scrollTime, noteWidth, noteLength);
                     n.Move(note.Time - scrollTime, note.Time, getNoteXPosition(note), 0, getNoteXPosition(note), 240);
                     n.ScaleVec(note.Time, note.EndTime - cut, noteWidth, noteLength, noteWidth, 0);
 
