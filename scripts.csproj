@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net481</TargetFramework>
+    <Configurations>Output</Configurations>
+    <RootNamespace>StorybrewScripts</RootNamespace>
+    <AssemblyName>storyboard</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Platforms>AnyCPU;x86</Platforms>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <BaseOutputPath>..\..\cache\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>..\..\cache\obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Output|AnyCPU' ">
+    <PlatformTarget>AnyCPU;x86</PlatformTarget>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="OpenTK">
+      <HintPath>..\..\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="BrewLib">
+      <HintPath>..\..\BrewLib.dll</HintPath>
+    </Reference>
+    <Reference Include="StorybrewCommon">
+      <HintPath>..\..\StorybrewCommon.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Melanchall.DryWetMidi">
+      <HintPath>scriptslibrary/Melanchall.DryWetMidi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
