@@ -9,12 +9,12 @@ namespace StorybrewScripts
 {
     class Spectrum : StoryboardObjectGenerator
     {
-        const float minHeight = .1f;
-        const int width = 290, barCount = 15;
-
         protected override void Generate() => MakeSpectrum(25, 172670, new Color4(120, 120, 255, 0));
         void MakeSpectrum(int startTime, int endTime, Color4 Color)
         {
+            const float minHeight = .1f;
+            const int width = 290, barCount = 15;
+
             var heightKeyframe = new KeyframedValue<float>[barCount];
             for (var i = 0; i < barCount; i++) heightKeyframe[i] = new KeyframedValue<float>();
 
