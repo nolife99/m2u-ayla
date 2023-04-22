@@ -29,9 +29,5 @@
       <HintPath>..\..\StorybrewCommon.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Melanchall.DryWetMidi">
-      <HintPath>scriptslibrary/Melanchall.DryWetMidi.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+  <ItemGroup />
 </Project>

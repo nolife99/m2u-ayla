@@ -2,7 +2,6 @@
 BeatmapId: 4101497
 BeatmapName: "Stradivarius"
 Assemblies:
-  - "C:\\Users\\Tian\\OneDrive\\Documents\\storybrew.1.81\\projects\\ayla\\scriptslibrary\\Melanchall.DryWetMidi.dll"
 Layers:
   - "1e45e911c17f4a0d8d7ae75b6677e7f1"
   - "74d66b6b79d04bab9cb7d0683aabbeaf"

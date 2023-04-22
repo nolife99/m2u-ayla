@@ -41,8 +41,8 @@ namespace StorybrewScripts
                 bar.Additive(startTime);
 
                 heightKeyframe[i].Simplify1dKeyframes(.47, h => h);
-                heightKeyframe[i].ForEachPair((start, end) 
-                    => bar.ScaleVec(start.Time, end.Time, .1f, start.Value, .1f, end.Value), 
+                heightKeyframe[i].ForEachPair((s, e) 
+                    => bar.ScaleVec(s.Time, e.Time, .1f, s.Value, .1f, e.Value), 
                     minHeight, s => (float)Math.Round(s, 2)
                 );
             }

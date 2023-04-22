@@ -29,8 +29,8 @@ namespace StorybrewScripts
 
         readonly Dictionary<string, (OsbSprite, OsbSprite)> keyHighlights = new Dictionary<string, (OsbSprite, OsbSprite)>();
 
-        const int noteWidth = 20, pWidth = 58, pHeight = 300, keyRange = 49, whiteKeySpacing = 12, keyCount = 49;
-        const float noteWidthScale = .55f, splashHeight = .2f, splashWidth = .6f, c4Index = 24.5f;
+        const int noteWidth = 20, pWidth = 58, pHeight = 300, whiteKeySpacing = 12, keyCount = 49;
+        const float noteWidthScale = .55f, splashHeight = .2f, splashWidth = .6f, c4Index = keyCount * .5f;
 
         StoryboardSegment layer;
 
@@ -38,7 +38,7 @@ namespace StorybrewScripts
         {
             #region Initialize Constants
 
-            var keyOctave = 3 - (int)Math.Floor(c4Index / 7.0);
+            var keyOctave = 3 - (int)Math.Floor(c4Index / 7f);
             layer = GetLayer("");
 
             const float offset = 155 / 192.2f;
@@ -166,7 +166,7 @@ namespace StorybrewScripts
                     p.Additive(s);
                     p.Fade(s, .6f);
                     if (chunks.IndexOf(track) == 0) p.Color(s, new Color4(200, 255, 255, 0));
-                    else p.Color(s, new Color4(120, 120, 255, 0));
+                    else p.Color(s, new Color4(120, 120, 230, 0));
                 }))
                 foreach (var note in track.GetNotes())
                 {
@@ -176,8 +176,7 @@ namespace StorybrewScripts
                     note.Length = (int)(note.Length * offset + 25);
 
                     var noteLength = note.Length * lengthMultiplier - .15f;
-                    var noteWidth = int.TryParse(getKeyOffset(note.NoteName, 1).ToString(), out int o) ?
-                        noteWidthScale * noteWidthBlackScale : noteWidthScale;
+                    var noteWidth = isFlatNote(note) ? noteWidthScale * noteWidthBlackScale : noteWidthScale;
 
                     var n = pool.Get(note.Time - scrollTime, note.EndTime - cut);
                     if (n.StartTime != double.MaxValue) n.ScaleVec(note.Time - scrollTime, noteWidth, noteLength);
@@ -203,20 +202,16 @@ namespace StorybrewScripts
 
             #endregion
         }
-        
+
+        static bool isFlatNote(Note note)
+            => int.TryParse(getKeyOffset(note.NoteName, 1).ToString(), out int o);
+
         static string getKeyFile(string keyType, bool highlight = false)
             => highlight ? $"sb/k/{keyType}hl.png" : $"sb/k/{keyType}.png";
 
         static int getOctaveOffset(int octave, int spacing)
             => (octave - 4) * 7 * spacing;
 
-        static float getNoteXPosition(Note note)
-        {
-            var keyOffset = getKeyOffset(note.NoteName, whiteKeySpacing);
-            var octaveOffset = getOctaveOffset(note.Octave, whiteKeySpacing);
-
-            return 320 + keyOffset + octaveOffset;
-        }
         static float getKeyOffset(NoteName noteName, float spacing) => new Dictionary<NoteName, float>
         {
             { NoteName.A, 4.5f },
@@ -232,5 +227,13 @@ namespace StorybrewScripts
             { NoteName.G, 3.5f },
             { NoteName.GSharp, 4 }
         }[noteName] * spacing;
+
+        static float getNoteXPosition(Note note)
+        {
+            var keyOffset = getKeyOffset(note.NoteName, whiteKeySpacing);
+            var octaveOffset = getOctaveOffset(note.Octave, whiteKeySpacing);
+
+            return 320 + keyOffset + octaveOffset;
+        }
     }
 }
