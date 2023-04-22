@@ -444,7 +444,6 @@ namespace Melanchall.DryWetMidi.Core
             if (bytes != null)
                 _dataBytesStream.Write(bytes, offset, length);
 
-            _midiReader?.Dispose();
             _midiReader = new MidiReader(_dataBytesStream, new ReaderSettings());
             _midiReader.Position = 0;
         }
@@ -511,11 +510,7 @@ namespace Melanchall.DryWetMidi.Core
             if (_disposed)
                 return;
 
-            if (disposing)
-            {
-                _dataBytesStream.Dispose();
-                _midiReader?.Dispose();
-            }
+            if (disposing) _dataBytesStream.Dispose();
 
             _disposed = true;
         }

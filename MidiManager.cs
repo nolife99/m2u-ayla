@@ -34,6 +34,7 @@ namespace StorybrewScripts
 
         StoryboardSegment layer;
 
+        [Configurable] public string MIDIPath = "";
         protected override void Generate()
         {
             #region Initialize Constants
@@ -152,13 +153,13 @@ namespace StorybrewScripts
 
             var scrollTime = 2500;
             var noteHeight = GetMapsetBitmap("sb/p.png").Height;
-            var noteWidthBlackScale = .6f;
 
             var scrollSpeed = 240f / scrollTime;
             var lengthMultiplier = (1f / noteHeight) * scrollSpeed;
 
             var file = MidiFile.Read(AssetPath + "/" + "Ayla_-_M2U.mid");
             var chunks = file.GetTrackChunks().ToList();
+            
             chunks.ForEach(track =>
             {
                 using (var pool = new SpritePool(layer, "sb/p.png", OsbOrigin.BottomCentre, (p, s, e) =>
@@ -170,13 +171,11 @@ namespace StorybrewScripts
                 }))
                 foreach (var note in track.GetNotes())
                 {
-                    if (note.Length == 0) continue;
-
-                    note.Time = (int)(note.Time * offset + 25);
-                    note.Length = (int)(note.Length * offset + 25);
+                    note.Time = (long)(note.Time * offset + 25);
+                    note.Length = (long)(note.Length * offset + 25);
 
                     var noteLength = note.Length * lengthMultiplier - .15f;
-                    var noteWidth = isFlatNote(note) ? noteWidthScale * noteWidthBlackScale : noteWidthScale;
+                    var noteWidth = isFlatNote(note) ? noteWidthScale * .5f : noteWidthScale;
 
                     var n = pool.Get(note.Time - scrollTime, note.EndTime - cut);
                     if (n.StartTime != double.MaxValue) n.ScaleVec(note.Time - scrollTime, noteWidth, noteLength);

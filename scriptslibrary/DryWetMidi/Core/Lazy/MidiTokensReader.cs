@@ -301,18 +301,10 @@ namespace Melanchall.DryWetMidi.Core
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        void Dispose(bool disposing)
         {
-            if (_disposed)
-                return;
-
-            if (disposing)
-            {
-                _reader.Dispose();
-                if (_disposeStream)
-                    _stream.Dispose();
-            }
-
+            if (_disposed) return;
+            if (disposing) if (_disposeStream) _stream.Dispose();
             _disposed = true;
         }
 

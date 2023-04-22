@@ -470,55 +470,53 @@ namespace Melanchall.DryWetMidi.Core
 
             try
             {
-                using (var reader = new MidiReader(stream, settings.ReaderSettings))
+                var reader = new MidiReader(stream, settings.ReaderSettings);
+                if (reader.EndReached)
+                    throw new ArgumentException("Stream is already read.", nameof(stream));
+
+                // Read RIFF header
+
+                long? smfEndPosition = null;
+                MidiFileReadingUtilities.ReadRmidPreamble(reader, out smfEndPosition);
+
+                // Read SMF
+
+                while (!reader.EndReached && (smfEndPosition == null || reader.Position < smfEndPosition))
                 {
-                    if (reader.EndReached)
-                        throw new ArgumentException("Stream is already read.", nameof(stream));
+                    // Read chunk
 
-                    // Read RIFF header
+                    var chunk = ReadChunk(reader, settings, actualTrackChunksCount, expectedTrackChunksCount);
+                    if (chunk == null)
+                        continue;
 
-                    long? smfEndPosition = null;
-                    MidiFileReadingUtilities.ReadRmidPreamble(reader, out smfEndPosition);
+                    // Process header chunk
 
-                    // Read SMF
-
-                    while (!reader.EndReached && (smfEndPosition == null || reader.Position < smfEndPosition))
+                    var headerChunk = chunk as HeaderChunk;
+                    if (headerChunk != null)
                     {
-                        // Read chunk
-
-                        var chunk = ReadChunk(reader, settings, actualTrackChunksCount, expectedTrackChunksCount);
-                        if (chunk == null)
-                            continue;
-
-                        // Process header chunk
-
-                        var headerChunk = chunk as HeaderChunk;
-                        if (headerChunk != null)
+                        if (!headerChunkIsRead)
                         {
-                            if (!headerChunkIsRead)
-                            {
-                                expectedTrackChunksCount = headerChunk.TracksNumber;
-                                file.TimeDivision = headerChunk.TimeDivision;
-                                file._originalFormat = headerChunk.FileFormat;
-                            }
-
-                            headerChunkIsRead = true;
-                            continue;
+                            expectedTrackChunksCount = headerChunk.TracksNumber;
+                            file.TimeDivision = headerChunk.TimeDivision;
+                            file._originalFormat = headerChunk.FileFormat;
                         }
 
-                        // Process track chunk
-
-                        if (chunk is TrackChunk)
-                            actualTrackChunksCount++;
-
-                        // Add chunk to chunks collection of the file
-
-                        file.Chunks.Add(chunk);
+                        headerChunkIsRead = true;
+                        continue;
                     }
 
-                    if (expectedTrackChunksCount != null && actualTrackChunksCount != expectedTrackChunksCount)
-                        ReactOnUnexpectedTrackChunksCount(settings.UnexpectedTrackChunksCountPolicy, actualTrackChunksCount, expectedTrackChunksCount.Value);
+                    // Process track chunk
+
+                    if (chunk is TrackChunk)
+                        actualTrackChunksCount++;
+
+                    // Add chunk to chunks collection of the file
+
+                    file.Chunks.Add(chunk);
                 }
+
+                if (expectedTrackChunksCount != null && actualTrackChunksCount != expectedTrackChunksCount)
+                    ReactOnUnexpectedTrackChunksCount(settings.UnexpectedTrackChunksCountPolicy, actualTrackChunksCount, expectedTrackChunksCount.Value);
 
                 // Process header chunks count
 
