@@ -18,11 +18,11 @@ namespace Melanchall.DryWetMidi.Core
         /// <param name="midiFile">MIDI file to get track chunks of.</param>
         /// <returns>Collection of track chunks contained in the <paramref name="midiFile"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="midiFile"/> is <c>null</c>.</exception>
-        public static IEnumerable<TrackChunk> GetTrackChunks(this MidiFile midiFile)
+        public static List<TrackChunk> GetTrackChunks(this MidiFile midiFile)
         {
             ThrowIfArgument.IsNull(nameof(midiFile), midiFile);
 
-            return midiFile.Chunks.OfType<TrackChunk>();
+            return midiFile.Chunks.OfType<TrackChunk>().ToList();
         }
 
         /// <summary>
