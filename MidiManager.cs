@@ -6,7 +6,6 @@ using Melanchall.DryWetMidi.MusicTheory;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using System.Collections.Generic;
-using System.Collections;
 using System;
 
 namespace StorybrewScripts
@@ -25,16 +24,14 @@ namespace StorybrewScripts
             {'B', "01"}
         };
 
-        const int noteWidth = 20, pWidth = 58, pHeight = 300, whiteKeySpacing = 12, keyCount = 52;
-        const float noteWidthScale = .55f, splashHeight = .2f, splashWidth = .6f, c4Index = keyCount * .5f;
+        const int noteWidth = 20, pWidth = 58, pHeight = 300, whiteKeySpacing = 12;
+        const float noteWidthScale = .55f, splashHeight = .2f, splashWidth = .6f;
 
         [Configurable] public string MIDIPath = "";
         protected override void Generate()
         {
             #region Initialize Constants
 
-            // Do floor division on middle C key and subtract to get first octave
-            var keyOctave = 3 - (int)Math.Floor(c4Index / 7);
             var layer = GetLayer("");
 
             // Method to match key ID to sprite
@@ -50,7 +47,7 @@ namespace StorybrewScripts
             var keyHighlights = new Dictionary<string, (OsbSprite, OsbSprite)>(); // Matches a note's ID to 2 highlights
 
             // 52 white keys on a piano
-            for (var i = 0; i < keyCount; i++)
+            for (int i = 0, keyOctave = 0; i < 52; i++)
             {
                 var keyNameIndex = i % 7 - 2; // Start at A# so offset by 2
                 if (keyNameIndex == 0) keyOctave++; // Increase the octave for every note reset
@@ -67,14 +64,14 @@ namespace StorybrewScripts
                     chars[chars.Length - 6] = '1';
                     keyFile = new string(chars);
                 }
-                else if (i == keyCount - 1)
+                else if (i == 51)
                 {
                     var chars = keyFile.ToCharArray();
                     chars[chars.Length - 5] = '1';
                     keyFile = new string(chars);
                 }
 
-                var pX = 320 + (i - c4Index) * whiteKeySpacing; // Position the keyboard at the center
+                var pX = 320 + (i - 26) * whiteKeySpacing; // Position the keyboard at the center
                 var pScale = noteWidth / (float)pWidth * noteWidthScale; // Scale the keys according to the piano's width
 
                 var p = layer.CreateSprite(keyFile, OsbOrigin.TopCentre, new Vector2(pX, 240)); // Key sprite
@@ -87,14 +84,14 @@ namespace StorybrewScripts
                 sp.ScaleVec(25, splashWidth, splashHeight);
 
                 var keyFullName = keyName + keyOctave.ToString(); // Construct an ID for the piano key
-                keyHighlights[keyFullName] = (hl, sp); // Assign the highlight and splash (in a tuple) to the ID
+                keyHighlights[keyFullName] = (hl, sp); // Assign the highlight and splash to the ID
                 keyPositions[keyFullName] = pX; // Assign the piano key's x-coordinate to the ID
                 keys.Add(p); // Add the key sprite to the HashSet
 
                 // Create black keys
                 if (keyFile[keyFile.Length - 5] == '0')
                 {
-                    pX += whiteKeySpacing * .5f; // Flat notes are half the width of regular notes
+                    pX += whiteKeySpacing / 2; // Flat notes are half the width of regular notes
 
                     var pb = layer.CreateSprite("sb/k/bb.png", OsbOrigin.TopCentre, new Vector2(pX, 240)); // Key sprite
                     pb.Scale(-1843, pScale);
@@ -106,7 +103,7 @@ namespace StorybrewScripts
                     sp.ScaleVec(25, splashWidth * .5f, splashHeight);
 
                     keyFullName = keyName + "Sharp" + keyOctave.ToString(); // Reconstruct an ID for the piano key
-                    keyHighlights[keyFullName] = (pbhl, sp); // Assign the highlight and splash (in a tuple) to the ID
+                    keyHighlights[keyFullName] = (pbhl, sp); // Assign the highlight and splash to the ID
                     keyPositions[keyFullName] = pX; // Assign the piano key's x-coordinate to the ID
                     keys.Add(pb); // Add the flat note sprite to the HashSet
                 }
@@ -133,12 +130,10 @@ namespace StorybrewScripts
             // Generate the falling piano notes
             CreateNotes(keyPositions, keyHighlights, layer);
         }
-        void CreateNotes(IDictionary keyPositions, IDictionary keyHighlights, StoryboardSegment layer)
+        void CreateNotes(
+            Dictionary<string, float> positions, Dictionary<string, (OsbSprite, OsbSprite)> highlights, 
+            StoryboardSegment layer)
         {
-            // Cast the key-value items
-            var positions = keyPositions as Dictionary<string, float>;
-            var highlights = keyHighlights as Dictionary<string, (OsbSprite, OsbSprite)>;
-
             // Constants
             var scrollTime = 2500;
             var noteHeight = GetMapsetBitmap("sb/p.png").Height;

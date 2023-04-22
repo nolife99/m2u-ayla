@@ -214,7 +214,7 @@ namespace Melanchall.DryWetMidi.Core
                 }
 
                 Position += wordSize;
-                return (ushort)((ptr[0] << 8) + ptr[1]);
+                return (ushort)((*ptr << 8) + *(ptr + 1));
             }
         }
 
@@ -237,7 +237,7 @@ namespace Melanchall.DryWetMidi.Core
             unsafe
             {
                 fixed (byte* pBytes = bytes) 
-                    return (uint)(pBytes[0] << 24 | pBytes[1] << 16 | pBytes[2] << 8 | pBytes[3]);
+                    return (uint)(*pBytes << 24 | *(pBytes + 1) << 16 | *(pBytes + 2) << 8 | *(pBytes + 3));
             }
         }
 
@@ -259,7 +259,7 @@ namespace Melanchall.DryWetMidi.Core
 
             unsafe
             {
-                fixed (byte* bytePtr = bytes) return (short)((bytePtr[0] << 8) + bytePtr[1]);
+                fixed (byte* bytePtr = bytes) return (short)((*bytePtr << 8) + *(bytePtr + 1));
             }
         }
 
@@ -346,7 +346,7 @@ namespace Melanchall.DryWetMidi.Core
             if (bytes.Length < dwordSize)
                 throw new NotEnoughBytesException("Not enough bytes in the stream to read a 3-byte DWORD.", dwordSize, bytes.Length);
 
-            fixed (byte* b = bytes) return (uint)((b[0] << 16) + (b[1] << 8) + b[2]);
+            fixed (byte* b = bytes) return (uint)((*b << 16) + (*(b + 1) << 8) + *(b + 2));
         }
 
         byte[] ReadBytesInternal(int count)
