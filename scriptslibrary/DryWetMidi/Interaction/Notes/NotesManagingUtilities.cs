@@ -235,7 +235,7 @@ namespace Melanchall.DryWetMidi.Interaction
         /// <seealso cref="RemoveNotes(EventsCollection, NoteDetectionSettings)"/>
         /// <seealso cref="RemoveNotes(EventsCollection, Predicate{Note}, NoteDetectionSettings)"/>
         /// <seealso cref="GetObjectsUtilities"/>
-        public static ICollection<Note> GetNotes(this EventsCollection eventsCollection, NoteDetectionSettings settings = null)
+        public static List<Note> GetNotes(this EventsCollection eventsCollection, NoteDetectionSettings settings = null)
         {
             ThrowIfArgument.IsNull(nameof(eventsCollection), eventsCollection);
 
@@ -261,7 +261,7 @@ namespace Melanchall.DryWetMidi.Interaction
         /// <seealso cref="RemoveNotes(TrackChunk, NoteDetectionSettings)"/>
         /// <seealso cref="RemoveNotes(TrackChunk, Predicate{Note}, NoteDetectionSettings)"/>
         /// <seealso cref="GetObjectsUtilities"/>
-        public static ICollection<Note> GetNotes(this TrackChunk trackChunk, NoteDetectionSettings settings = null)
+        public static List<Note> GetNotes(this TrackChunk trackChunk, NoteDetectionSettings settings = null)
         {
             ThrowIfArgument.IsNull(nameof(trackChunk), trackChunk);
 

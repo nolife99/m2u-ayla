@@ -156,7 +156,7 @@ namespace StorybrewScripts
                     if (chunks.IndexOf(track) == 0) p.Color(s, new Color4(200, 255, 255, 0));
                     else p.Color(s, new Color4(120, 120, 230, 0));
                 }))
-                foreach (var note in track.GetNotes())
+                track.GetNotes().ForEach(note =>
                 {
                     // Offset the note's time and length
                     note.Time = (long)(note.Time * offset + 25);
@@ -182,7 +182,7 @@ namespace StorybrewScripts
                     splashes.Item1.Fade(note.EndTime - cut, note.EndTime - cut, 1, 0);
                     splashes.Item2.Fade(note.Time, note.Time, 0, 1);
                     splashes.Item2.Fade(note.EndTime - cut, note.EndTime - cut, 1, 0);
-                }
+                });
             });
 
             // Remove any unused highlights
