@@ -175,7 +175,7 @@ namespace StorybrewScripts
                     n.ScaleVec(note.Time, note.EndTime - cut, noteWidth, noteLength, noteWidth, 0);
 
                     // Activate the key ID's corresponding highlights
-                    var splashes = highlights[key];
+                    var splashes = highlights[key]; // Item1 = key highlight, Item2 = splash
                     splashes.Item1.Fade(note.Time, note.Time, 0, 1);
                     splashes.Item1.Fade(note.EndTime - cut, note.EndTime - cut, 1, 0);
                     splashes.Item2.Fade(note.Time, note.Time, 0, 1);
