@@ -14,51 +14,6 @@ namespace Melanchall.DryWetMidi.Interaction
         #region Methods
 
         /// <summary>
-        /// Creates an instance of the <see cref="TimedObjectsManager{TimedEvent}"/> initializing it with the
-        /// specified events collection. More info in the <see href="xref:a_managers">Objects managers</see> article.
-        /// </summary>
-        /// <param name="eventsCollection"><see cref="EventsCollection"/> that holds events to manage.</param>
-        /// <param name="settings">Settings accoridng to which timed events should be detected and built.</param>
-        /// <param name="comparer">Comparer that will be used to order objects on enumerating and saving objects
-        /// back to the <paramref name="eventsCollection"/> via <see cref="TimedObjectsManager{TObject}.SaveChanges"/>
-        /// or <see cref="TimedObjectsManager{TObject}.Dispose()"/>.</param>
-        /// <returns>An instance of the <see cref="TimedObjectsManager{TimedEvent}"/> that can be used to manage
-        /// events represented by the <paramref name="eventsCollection"/>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="eventsCollection"/> is <c>null</c>.</exception>
-        public static TimedObjectsManager<TimedEvent> ManageTimedEvents(this EventsCollection eventsCollection, TimedEventDetectionSettings settings = null, TimedObjectsComparer comparer = null)
-        {
-            ThrowIfArgument.IsNull(nameof(eventsCollection), eventsCollection);
-
-            return new TimedObjectsManager<TimedEvent>(
-                eventsCollection,
-                new ObjectDetectionSettings
-                {
-                    TimedEventDetectionSettings = settings
-                },
-                comparer);
-        }
-
-        /// <summary>
-        /// Creates an instance of the <see cref="TimedObjectsManager{TimedEvent}"/> initializing it with the
-        /// events collection of the specified track chunk. More info in the
-        /// <see href="xref:a_managers">Objects managers</see> article.
-        /// </summary>
-        /// <param name="trackChunk"><see cref="TrackChunk"/> that holds events to manage.</param>
-        /// <param name="settings">Settings accoridng to which timed events should be detected and built.</param>
-        /// <param name="comparer">Comparer that will be used to order objects on enumerating and saving objects
-        /// back to the <paramref name="trackChunk"/> via <see cref="TimedObjectsManager{TObject}.SaveChanges"/>
-        /// or <see cref="TimedObjectsManager{TObject}.Dispose()"/>.</param>
-        /// <returns>An instance of the <see cref="TimedObjectsManager{TimedEvent}"/> that can be used to manage
-        /// events represented by the <paramref name="trackChunk"/>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="trackChunk"/> is <c>null</c>.</exception>
-        public static TimedObjectsManager<TimedEvent> ManageTimedEvents(this TrackChunk trackChunk, TimedEventDetectionSettings settings = null, TimedObjectsComparer comparer = null)
-        {
-            ThrowIfArgument.IsNull(nameof(trackChunk), trackChunk);
-
-            return trackChunk.Events.ManageTimedEvents(settings, comparer);
-        }
-
-        /// <summary>
         /// Gets timed events contained in the specified <see cref="EventsCollection"/>. More info in the
         /// <see href="xref:a_getting_objects#gettimedevents">Getting objects: GetTimedEvents</see> article.
         /// </summary>

@@ -29,14 +29,6 @@ namespace Melanchall.DryWetMidi.Interaction
             if (timedEvent != null)
                 return new TimedEventId(timedEvent.Event.EventType);
 
-            var chord = obj as Chord;
-            if (chord != null)
-                return new ChordId(chord.Notes.Select(GetNoteId).ToArray());
-
-            var rest = obj as Rest;
-            if (rest != null)
-                return new RestId(rest.Channel, rest.NoteNumber);
-
             var registeredParameter = obj as RegisteredParameter;
             if (registeredParameter != null)
                 return new RegisteredParameterId(registeredParameter.ParameterType);

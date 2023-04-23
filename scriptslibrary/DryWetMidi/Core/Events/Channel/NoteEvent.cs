@@ -65,17 +65,6 @@ namespace Melanchall.DryWetMidi.Core
             _dataByte2 = ReadDataByte(reader, settings);
         }
 
-        internal sealed override void Write(MidiWriter writer, WritingSettings settings)
-        {
-            writer.WriteByte(_dataByte1);
-            writer.WriteByte(_dataByte2);
-        }
-
-        internal sealed override int GetSize(WritingSettings settings)
-        {
-            return 2;
-        }
-
         #endregion
     }
 }

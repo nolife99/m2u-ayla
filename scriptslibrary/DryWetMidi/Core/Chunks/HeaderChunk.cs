@@ -93,38 +93,6 @@ namespace Melanchall.DryWetMidi.Core
             TracksNumber = tracksNumber;
         }
 
-        /// <summary>
-        /// Writes content of a <see cref="HeaderChunk"/>.
-        /// </summary>
-        /// <remarks>
-        /// Content of a <see cref="HeaderChunk"/> is format of the file, number of track chunks and time division.
-        /// Six bytes required to write all of this information.
-        /// </remarks>
-        /// <param name="writer">Writer to write the chunk's content with.</param>
-        /// <param name="settings">Settings according to which the chunk's content must be written.</param>
-        /// <exception cref="ObjectDisposedException">Method was called after the writer's underlying stream was disposed.</exception>
-        /// <exception cref="IOException">An I/O error occurred on the writer's underlying stream.</exception>
-        protected override void WriteContent(MidiWriter writer, WritingSettings settings)
-        {
-            writer.WriteWord(FileFormat);
-            writer.WriteWord(TracksNumber);
-            writer.WriteInt16(TimeDivision.ToInt16());
-        }
-
-        /// <summary>
-        /// Gets size of <see cref="HeaderChunk"/>'s content as number of bytes required to write it according
-        /// to specified <see cref="WritingSettings"/>.
-        /// </summary>
-        /// <param name="settings">Settings according to which the chunk's content will be written.</param>
-        /// <returns>Number of bytes required to write <see cref="HeaderChunk"/>'s content.</returns>
-        /// <remarks>
-        /// This method must always return 6.
-        /// </remarks>
-        protected override uint GetContentSize(WritingSettings settings)
-        {
-            return 6;
-        }
-
         #endregion
     }
 }

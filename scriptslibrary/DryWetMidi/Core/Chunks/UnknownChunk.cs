@@ -94,34 +94,6 @@ namespace Melanchall.DryWetMidi.Core
         }
 
         /// <summary>
-        /// Writes content of a <see cref="UnknownChunk"/>.
-        /// </summary>
-        /// <remarks>
-        /// Content of an <see cref="UnknownChunk"/> is array of bytes.
-        /// </remarks>
-        /// <param name="writer">Writer to write the chunk's content with.</param>
-        /// <param name="settings">Settings according to which the chunk's content must be written.</param>
-        /// <exception cref="ObjectDisposedException">Method was called after the writer's underlying stream was disposed.</exception>
-        /// <exception cref="IOException">An I/O error occurred on the writer's underlying stream.</exception>
-        protected override void WriteContent(MidiWriter writer, WritingSettings settings)
-        {
-            var data = Data;
-            if (data != null)
-                writer.WriteBytes(data);
-        }
-
-        /// <summary>
-        /// Gets size of <see cref="UnknownChunk"/>'s content as number of bytes required to write it according
-        /// to the specified <see cref="WritingSettings"/>.
-        /// </summary>
-        /// <param name="settings">Settings according to which the chunk's content will be written.</param>
-        /// <returns>Number of bytes required to write <see cref="UnknownChunk"/>'s content.</returns>
-        protected override uint GetContentSize(WritingSettings settings)
-        {
-            return (uint)(Data?.Length ?? 0);
-        }
-
-        /// <summary>
         /// Returns a string that represents the current object.
         /// </summary>
         /// <returns>A string that represents the current object.</returns>

@@ -101,63 +101,6 @@ namespace Melanchall.DryWetMidi.Core
         }
 
         /// <summary>
-        /// Determines whether two specified <see cref="MidiChunk"/> objects have the same content.
-        /// </summary>
-        /// <param name="chunk1">The first chunk to compare, or <c>null</c>.</param>
-        /// <param name="chunk2">The second chunk to compare, or <c>null</c>.</param>
-        /// <returns><c>true</c> if the <paramref name="chunk1"/> is equal to the <paramref name="chunk2"/>;
-        /// otherwise, <c>false</c>.</returns>
-        public static bool Equals(MidiChunk chunk1, MidiChunk chunk2)
-        {
-            string message;
-            return Equals(chunk1, chunk2, out message);
-        }
-
-        /// <summary>
-        /// Determines whether two specified <see cref="MidiChunk"/> objects have the same content.
-        /// </summary>
-        /// <param name="chunk1">The first chunk to compare, or <c>null</c>.</param>
-        /// <param name="chunk2">The second chunk to compare, or <c>null</c>.</param>
-        /// <param name="message">Message containing information about what exactly is different in
-        /// <paramref name="chunk1"/> and <paramref name="chunk2"/>.</param>
-        /// <returns><c>true</c> if the <paramref name="chunk1"/> is equal to the <paramref name="chunk2"/>;
-        /// otherwise, <c>false</c>.</returns>
-        public static bool Equals(MidiChunk chunk1, MidiChunk chunk2, out string message)
-        {
-            return Equals(chunk1, chunk2, null, out message);
-        }
-
-        /// <summary>
-        /// Determines whether two specified <see cref="MidiChunk"/> objects have the same content.
-        /// </summary>
-        /// <param name="chunk1">The first chunk to compare, or <c>null</c>.</param>
-        /// <param name="chunk2">The second chunk to compare, or <c>null</c>.</param>
-        /// <param name="settings">Settings according to which chunks should be compared.</param>
-        /// <returns><c>true</c> if the <paramref name="chunk1"/> is equal to the <paramref name="chunk2"/>;
-        /// otherwise, <c>false</c>.</returns>
-        public static bool Equals(MidiChunk chunk1, MidiChunk chunk2, MidiChunkEqualityCheckSettings settings)
-        {
-            string message;
-            return Equals(chunk1, chunk2, settings, out message);
-        }
-
-        /// <summary>
-        /// Determines whether two specified <see cref="MidiChunk"/> objects have the same content using
-        /// the specified comparison settings.
-        /// </summary>
-        /// <param name="chunk1">The first chunk to compare, or <c>null</c>.</param>
-        /// <param name="chunk2">The second chunk to compare, or <c>null</c>.</param>
-        /// <param name="settings">Settings according to which chunks should be compared.</param>
-        /// <param name="message">Message containing information about what exactly is different in
-        /// <paramref name="chunk1"/> and <paramref name="chunk2"/>.</param>
-        /// <returns><c>true</c> if the <paramref name="chunk1"/> is equal to the <paramref name="chunk2"/>;
-        /// otherwise, <c>false</c>.</returns>
-        public static bool Equals(MidiChunk chunk1, MidiChunk chunk2, MidiChunkEqualityCheckSettings settings, out string message)
-        {
-            return MidiChunkEquality.Equals(chunk1, chunk2, settings ?? new MidiChunkEqualityCheckSettings(), out message);
-        }
-
-        /// <summary>
         /// Reads chunk from the <see cref="MidiReader"/>'s underlying stream according to
         /// specified <see cref="ReadingSettings"/>.
         /// </summary>
@@ -189,36 +132,11 @@ namespace Melanchall.DryWetMidi.Core
                 reader.Position += Math.Min(bytesUnread, reader.Length);
         }
 
-        /// <summary>
-        /// Writes chunk to the <see cref="MidiWriter"/>'s underlying stream according to
-        /// specified <see cref="WritingSettings"/>.
-        /// </summary>
-        /// <param name="writer">Writer to write the chunk's data with.</param>
-        /// <param name="settings">Settings according to which the chunk's data must be written.</param>
-        /// <exception cref="ObjectDisposedException">
-        /// Method was called after <paramref name="writer"/> was disposed.
-        /// </exception>
-        /// <exception cref="IOException">
-        /// An I/O error occurred on the <paramref name="writer"/>'s underlying stream.
-        /// </exception>
-        internal void Write(MidiWriter writer, WritingSettings settings)
-        {
-            var size = GetContentSize(settings);
-            WriteHeader(ChunkId, size, writer, settings);
-            WriteContent(writer, settings);
-        }
-
         internal static uint ReadSize(MidiReader reader, out long readerPosition)
         {
             var size = reader.ReadDword();
             readerPosition = reader.Position;
             return size;
-        }
-
-        internal static void WriteHeader(string chunkId, uint size, MidiWriter writer, WritingSettings settings)
-        {
-            writer.WriteString(chunkId);
-            writer.WriteDword(size);
         }
 
         /// <summary>
@@ -228,21 +146,6 @@ namespace Melanchall.DryWetMidi.Core
         /// <param name="settings">Settings according to which the chunk's content must be read.</param>
         /// <param name="size">Expected size of the content taken from the chunk's header.</param>
         protected abstract void ReadContent(MidiReader reader, ReadingSettings settings, uint size);
-
-        /// <summary>
-        /// Writes content of a chunk. Content is a part of chunk's data without its header (ID and size).
-        /// </summary>
-        /// <param name="writer">Writer to write the chunk's content with.</param>
-        /// <param name="settings">Settings according to which the chunk's content must be written.</param>
-        protected abstract void WriteContent(MidiWriter writer, WritingSettings settings);
-
-        /// <summary>
-        /// Gets size of chunk's content as number of bytes required to write it according to specified
-        /// <see cref="WritingSettings"/>.
-        /// </summary>
-        /// <param name="settings">Settings according to which the chunk's content will be written.</param>
-        /// <returns>Number of bytes required to write chunk's content.</returns>
-        protected abstract uint GetContentSize(WritingSettings settings);
 
         #endregion
     }

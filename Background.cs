@@ -27,7 +27,7 @@ namespace StorybrewScripts
             line.Fade(-2000, .5f);
             line.MoveX(171756, 171756, -107, 747);
             line.Rotate(171756, 171756, 0, (float)Math.PI);
-            line.ScaleVec(171756, 172670, 854, 2, 0, 2);
+            line.ScaleVec(171756, 172863, 854, 2, 0, 2);
             
             var vig = GetLayer("Overlay").CreateSprite("sb/v.png", OsbOrigin.Centre, new Vector2(320, 240));
             vig.Fade(-2475, 174992, 1, 1);

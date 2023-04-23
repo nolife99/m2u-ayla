@@ -9,9 +9,6 @@
 
         private static readonly IEventReader MetaEventReader = new MetaEventReader();
         private static readonly IEventReader ChannelEventReader = new ChannelEventReader();
-        private static readonly IEventReader SysExEventReader = new SysExEventReader();
-        private static readonly IEventReader SystemRealTimeEventReader = new SystemRealTimeEventReader();
-        private static readonly IEventReader SystemCommonEventReader = new SystemCommonEventReader();
 
         #endregion
 
@@ -25,27 +22,6 @@
         /// <returns>Reader for an event with the specified status byte.</returns>
         internal static IEventReader GetReader(byte statusByte, bool smfOnly)
         {
-            if (statusByte == EventStatusBytes.Global.EscapeSysEx ||
-                statusByte == EventStatusBytes.Global.NormalSysEx)
-                return SysExEventReader;
-
-            if (!smfOnly)
-            {
-                if (statusByte == EventStatusBytes.SystemRealTime.ActiveSensing ||
-                    statusByte == EventStatusBytes.SystemRealTime.Continue ||
-                    statusByte == EventStatusBytes.SystemRealTime.Reset ||
-                    statusByte == EventStatusBytes.SystemRealTime.Start ||
-                    statusByte == EventStatusBytes.SystemRealTime.Stop ||
-                    statusByte == EventStatusBytes.SystemRealTime.TimingClock)
-                    return SystemRealTimeEventReader;
-
-                if (statusByte == EventStatusBytes.SystemCommon.MtcQuarterFrame ||
-                    statusByte == EventStatusBytes.SystemCommon.SongPositionPointer ||
-                    statusByte == EventStatusBytes.SystemCommon.SongSelect ||
-                    statusByte == EventStatusBytes.SystemCommon.TuneRequest)
-                    return SystemCommonEventReader;
-            }
-
             if (statusByte == EventStatusBytes.Global.Meta)
                 return MetaEventReader;
 

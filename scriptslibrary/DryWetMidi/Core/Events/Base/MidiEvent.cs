@@ -84,20 +84,6 @@ namespace Melanchall.DryWetMidi.Core
         internal abstract void Read(MidiReader reader, ReadingSettings settings, int size);
 
         /// <summary>
-        /// Writes content of a MIDI event.
-        /// </summary>
-        /// <param name="writer">Writer to write the content with.</param>
-        /// <param name="settings">Settings according to which the event's content must be written.</param>
-        internal abstract void Write(MidiWriter writer, WritingSettings settings);
-
-        /// <summary>
-        /// Gets the size of the content of a MIDI event.
-        /// </summary>
-        /// <param name="settings">Settings according to which the event's content must be written.</param>
-        /// <returns>Size of the event's content.</returns>
-        internal abstract int GetSize(WritingSettings settings);
-
-        /// <summary>
         /// Clones event by creating a copy of it.
         /// </summary>
         /// <returns>Copy of the event.</returns>
@@ -112,63 +98,6 @@ namespace Melanchall.DryWetMidi.Core
             var midiEvent = CloneEvent();
             midiEvent._deltaTime = _deltaTime;
             return midiEvent;
-        }
-
-        /// <summary>
-        /// Determines whether two specified <see cref="MidiEvent"/> objects have the same content.
-        /// </summary>
-        /// <param name="midiEvent1">The first event to compare, or <c>null</c>.</param>
-        /// <param name="midiEvent2">The second event to compare, or <c>null</c>.</param>
-        /// <returns><c>true</c> if the <paramref name="midiEvent1"/> is equal to the <paramref name="midiEvent2"/>;
-        /// otherwise, <c>false</c>.</returns>
-        public static bool Equals(MidiEvent midiEvent1, MidiEvent midiEvent2)
-        {
-            string message;
-            return Equals(midiEvent1, midiEvent2, out message);
-        }
-
-        /// <summary>
-        /// Determines whether two specified <see cref="MidiEvent"/> objects have the same content.
-        /// </summary>
-        /// <param name="midiEvent1">The first event to compare, or <c>null</c>.</param>
-        /// <param name="midiEvent2">The second event to compare, or <c>null</c>.</param>
-        /// <param name="message">Message containing information about what exactly is different in
-        /// <paramref name="midiEvent1"/> and <paramref name="midiEvent2"/>.</param>
-        /// <returns><c>true</c> if the <paramref name="midiEvent1"/> is equal to the <paramref name="midiEvent2"/>;
-        /// otherwise, <c>false</c>.</returns>
-        public static bool Equals(MidiEvent midiEvent1, MidiEvent midiEvent2, out string message)
-        {
-            return Equals(midiEvent1, midiEvent2, null, out message);
-        }
-
-        /// <summary>
-        /// Determines whether two specified <see cref="MidiEvent"/> objects have the same content.
-        /// </summary>
-        /// <param name="midiEvent1">The first event to compare, or <c>null</c>.</param>
-        /// <param name="midiEvent2">The second event to compare, or <c>null</c>.</param>
-        /// <param name="settings">Settings according to which events should be compared.</param>
-        /// <returns><c>true</c> if the <paramref name="midiEvent1"/> is equal to the <paramref name="midiEvent2"/>;
-        /// otherwise, <c>false</c>.</returns>
-        public static bool Equals(MidiEvent midiEvent1, MidiEvent midiEvent2, MidiEventEqualityCheckSettings settings)
-        {
-            string message;
-            return Equals(midiEvent1, midiEvent2, settings, out message);
-        }
-
-        /// <summary>
-        /// Determines whether two specified <see cref="MidiEvent"/> objects have the same content using
-        /// the specified comparison settings.
-        /// </summary>
-        /// <param name="midiEvent1">The first event to compare, or <c>null</c>.</param>
-        /// <param name="midiEvent2">The second event to compare, or <c>null</c>.</param>
-        /// <param name="settings">Settings according to which events should be compared.</param>
-        /// <param name="message">Message containing information about what exactly is different in
-        /// <paramref name="midiEvent1"/> and <paramref name="midiEvent2"/>.</param>
-        /// <returns><c>true</c> if the <paramref name="midiEvent1"/> is equal to the <paramref name="midiEvent2"/>;
-        /// otherwise, <c>false</c>.</returns>
-        public static bool Equals(MidiEvent midiEvent1, MidiEvent midiEvent2, MidiEventEqualityCheckSettings settings, out string message)
-        {
-            return MidiEventEquality.Equals(midiEvent1, midiEvent2, settings ?? new MidiEventEqualityCheckSettings(), out message);
         }
 
         #endregion

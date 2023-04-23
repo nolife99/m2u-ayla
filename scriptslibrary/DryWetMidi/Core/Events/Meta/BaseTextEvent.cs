@@ -90,37 +90,6 @@ namespace Melanchall.DryWetMidi.Core
                 : encoding.GetString(bytes);
         }
 
-        /// <summary>
-        /// Writes content of a MIDI meta event.
-        /// </summary>
-        /// <param name="writer">Writer to write the content with.</param>
-        /// <param name="settings">Settings according to which the event's content must be written.</param>
-        protected sealed override void WriteContent(MidiWriter writer, WritingSettings settings)
-        {
-            var text = Text;
-            if (string.IsNullOrEmpty(text))
-                return;
-
-            var encoding = settings.TextEncoding ?? SmfConstants.DefaultTextEncoding;
-            var bytes = encoding.GetBytes(text);
-            writer.WriteBytes(bytes);
-        }
-
-        /// <summary>
-        /// Gets the size of the content of a MIDI meta event.
-        /// </summary>
-        /// <param name="settings">Settings according to which the event's content must be written.</param>
-        /// <returns>Size of the event's content.</returns>
-        protected sealed override int GetContentSize(WritingSettings settings)
-        {
-            var text = Text;
-            if (string.IsNullOrEmpty(text))
-                return 0;
-
-            var encoding = settings.TextEncoding ?? SmfConstants.DefaultTextEncoding;
-            return encoding.GetByteCount(Text);
-        }
-
         #endregion
     }
 }

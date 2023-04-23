@@ -146,29 +146,6 @@ namespace Melanchall.DryWetMidi.Core
         }
 
         /// <summary>
-        /// Writes content of a MIDI meta event.
-        /// </summary>
-        /// <param name="writer">Writer to write the content with.</param>
-        /// <param name="settings">Settings according to which the event's content must be written.</param>
-        protected override void WriteContent(MidiWriter writer, WritingSettings settings)
-        {
-            writer.WriteByte(Numerator);
-            writer.WriteByte((byte)Math.Log(Denominator, 2));
-            writer.WriteByte(ClocksPerClick);
-            writer.WriteByte(ThirtySecondNotesPerBeat);
-        }
-
-        /// <summary>
-        /// Gets the size of the content of a MIDI meta event.
-        /// </summary>
-        /// <param name="settings">Settings according to which the event's content must be written.</param>
-        /// <returns>Size of the event's content.</returns>
-        protected override int GetContentSize(WritingSettings settings)
-        {
-            return 4;
-        }
-
-        /// <summary>
         /// Clones event by creating a copy of it.
         /// </summary>
         /// <returns>Copy of the event.</returns>

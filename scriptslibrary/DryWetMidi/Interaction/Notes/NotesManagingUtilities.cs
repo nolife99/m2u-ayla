@@ -202,51 +202,6 @@ namespace Melanchall.DryWetMidi.Interaction
         #region Methods
 
         /// <summary>
-        /// Creates an instance of the <see cref="TimedObjectsManager{Note}"/> initializing it with the
-        /// specified events collection. More info in the <see href="xref:a_managers">Objects managers</see> article.
-        /// </summary>
-        /// <param name="eventsCollection"><see cref="EventsCollection"/> that holds notes to manage.</param>
-        /// <param name="settings">Settings accoridng to which notes should be detected and built.</param>
-        /// <param name="comparer">Comparer that will be used to order objects on enumerating and saving objects
-        /// back to the <paramref name="eventsCollection"/> via <see cref="TimedObjectsManager{TObject}.SaveChanges"/>
-        /// or <see cref="TimedObjectsManager{TObject}.Dispose()"/>.</param>
-        /// <returns>An instance of the <see cref="TimedObjectsManager{Note}"/> that can be used to manage
-        /// notes represented by the <paramref name="eventsCollection"/>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="eventsCollection"/> is <c>null</c>.</exception>
-        public static TimedObjectsManager<Note> ManageNotes(this EventsCollection eventsCollection, NoteDetectionSettings settings = null, TimedObjectsComparer comparer = null)
-        {
-            ThrowIfArgument.IsNull(nameof(eventsCollection), eventsCollection);
-
-            return new TimedObjectsManager<Note>(
-                eventsCollection,
-                new ObjectDetectionSettings
-                {
-                    NoteDetectionSettings = settings
-                },
-                comparer);
-        }
-
-        /// <summary>
-        /// Creates an instance of the <see cref="TimedObjectsManager{Note}"/> initializing it with the
-        /// events collection of the specified track chunk. More info in the
-        /// <see href="xref:a_managers">Objects managers</see> article.
-        /// </summary>
-        /// <param name="trackChunk"><see cref="TrackChunk"/> that holds notes to manage.</param>
-        /// <param name="settings">Settings accoridng to which notes should be detected and built.</param>
-        /// <param name="comparer">Comparer that will be used to order objects on enumerating and saving objects
-        /// back to the <paramref name="trackChunk"/> via <see cref="TimedObjectsManager{TObject}.SaveChanges"/>
-        /// or <see cref="TimedObjectsManager{TObject}.Dispose()"/>.</param>
-        /// <returns>An instance of the <see cref="TimedObjectsManager{Note}"/> that can be used to manage
-        /// notes represented by the <paramref name="trackChunk"/>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="trackChunk"/> is <c>null</c>.</exception>
-        public static TimedObjectsManager<Note> ManageNotes(this TrackChunk trackChunk, NoteDetectionSettings settings = null, TimedObjectsComparer comparer = null)
-        {
-            ThrowIfArgument.IsNull(nameof(trackChunk), trackChunk);
-
-            return trackChunk.Events.ManageNotes(settings, comparer);
-        }
-
-        /// <summary>
         /// Gets notes contained in the specified collection of <see cref="MidiEvent"/>. More info in the
         /// <see href="xref:a_getting_objects#getnotes">Getting objects: GetNotes</see> article.
         /// </summary>
