@@ -9,7 +9,6 @@ namespace MIDI
         internal readonly int Format, TicksPerQuarterNote, TracksCount;
         internal readonly MidiTrack[] Tracks;
 
-        internal MidiFile(Stream stream) : this(Reader.ReadAllBytesFromStream(stream)) {}
         internal MidiFile(string path) : this(File.ReadAllBytes(path)) {}
         internal MidiFile(byte[] data)
         {
@@ -111,11 +110,9 @@ namespace MIDI
                             var data2 = (byte)0;
 
                             if (ParseMetaEvent(data, ref position, metaEventType, ref data1, ref data2))
-                            {
                                 track.MidiEvents.Add(new MidiEvent
                                     { Time = time, Type = status, Arg1 = metaEventType, Arg2 = data1, Arg3 = data2 }
                                 );
-                            }
                         }
                     }
                     else if (status == 0xF0 || status == 0xF7)
@@ -132,68 +129,56 @@ namespace MIDI
 
         static class Reader
         {
-            internal unsafe static short Read16(byte[] data, ref int i)
+            internal unsafe static short Read16(byte[] data, ref int i) 
             {
-                fixed (byte* pData = &data[i])
+                fixed (byte* pData = data)
+                    return (short)unchecked((*(pData + i++) << 8) | *(pData + i++));
+            }
+                            
+            internal unsafe static int Read32(byte[] data, ref int i) 
+            {
+                fixed (byte* pData = data) 
+                    return unchecked((*(pData + i++) << 24) | (*(pData + i++) << 16) | (*(pData + i++) << 8) | *(pData + i++));
+            }
+
+            internal unsafe static byte Read8(byte[] data, ref int i) 
+            {
+                fixed (byte* pData = data)
+                    return unchecked(*(pData + i++));
+            }
+
+            internal static unsafe string ReadString(byte[] data, ref int i, int length)
+            {
+                fixed (byte* pData = data)
                 {
-                    i += 2;
-                    return (short)((*pData << 8) | *(pData + 1));
+                    var result = new string((sbyte*)pData, i, length, System.Text.Encoding.ASCII);
+                    i += length;
+                    return result;
                 }
-            }
-
-            internal unsafe static int Read32(byte[] data, ref int i)
-            {
-                fixed (byte* pData = &data[i])
-                {
-                    i += 4;
-                    return (*pData << 24) | (*(pData + 1) << 16) | (*(pData + 2) << 8) | *(pData + 3);
-                }
-            }
-
-            internal unsafe static byte Read8(byte[] data, ref int i)
-            {
-                fixed (byte* pData = &data[i++]) return *pData;
-            }
-
-            internal static byte[] ReadAllBytesFromStream(Stream input)
-            {
-                var buffer = new byte[16384];
-                using (var ms = new MemoryStream())
-                {
-                    int read;
-                    while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                        ms.Write(buffer, 0, read);
-
-                    return ms.ToArray();
-                }
-            }
-
-            internal static string ReadString(byte[] data, ref int i, int length)
-            {
-                var result = System.Text.Encoding.ASCII.GetString(data, i, length);
-                i += length;
-                return result;
             }
 
             internal static unsafe int ReadVarInt(byte[] data, ref int i)
             {
                 fixed (byte* pData = data)
                 {
-                    var pCurrent = pData + i;
-                    var result = *pCurrent++;
-                    i++;
-                    if ((result & 0x80) == 0) return result;
+                    var p = pData + i;
+                    int result = *p++;
+                    if ((result & 0x80) == 0)
+                    {
+                        i = (int)(p - pData);
+                        return result;
+                    }
                     result &= 0x7F;
 
                     for (var j = 0; j < 3; j++)
                     {
-                        var value = *pCurrent++;
-                        i++;
+                        int value = *p++;
                         result = (result << 7) | (value & 0x7F);
                         if ((value & 0x80) == 0) break;
                     }
 
-                    return result;
+                    i = (int)(p - pData);
+                    return unchecked(result);
                 }
             }
         }

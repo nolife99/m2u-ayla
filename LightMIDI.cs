@@ -21,8 +21,8 @@ namespace StorybrewScripts
             {'B', "01"}
         };
 
-        const int noteWidth = 20, pWidth = 58, pHeight = 300, whiteKeySpacing = 12;
-        const float noteWidthScale = .55f, splashHeight = .2f, splashWidth = .6f;
+        const int pWidth = 58;
+        const float noteWidthScale = .6f, splashHeight = .2f, splashWidth = .6f, whiteKeySpacing = 640f / 52;
 
         [Configurable] public string MIDIPath = "";
         protected override void Generate()
@@ -68,8 +68,8 @@ namespace StorybrewScripts
                     keyFile = new string(chars);
                 }
 
-                var pX = 320 + (i - 26f) * whiteKeySpacing; // Position the keyboard at the center
-                var pScale = noteWidth / (float)pWidth * noteWidthScale; // Scale the keys according to the piano's width
+                var pScale = GetMapsetBitmap("sb/p.png").Width / (float)pWidth * noteWidthScale; // Scale the keys according to the piano's width
+                var pX = whiteKeySpacing * i + GetMapsetBitmap("sb/p.png").Width * pScale; // Position the keyboard at the center
 
                 var p = layer.CreateSprite(keyFile, OsbOrigin.TopCentre, new Vector2(pX, 240)); // Key sprite
                 p.Scale(-1843, pScale);
@@ -134,11 +134,11 @@ namespace StorybrewScripts
             // Constants
             var scrollTime = 2500;
             var noteHeight = GetMapsetBitmap("sb/p.png").Height;
-            var lengthMultiplier = (1f / noteHeight) * (240f / scrollTime);
+            var lengthMultiplier = 1f / noteHeight * (240f / scrollTime);
 
             // Offset the MIDI accordingly to match the beatmap's time (play around with it?)
             const float offset = 155 / 192.2f;
-            var cut = (float)(Beatmap.GetTimingPointAt(25).BeatDuration / 40); // Shorten note time by little
+            var cut = (float)(Beatmap.GetTimingPointAt(25).BeatDuration / 64); // Shorten note time by little
 
             // Generate the notes in a nested loop for each track
             var file = new MidiFile(AssetPath + "/" + MIDIPath);
@@ -147,13 +147,10 @@ namespace StorybrewScripts
                 var offEvent = new List<MidiEvent>();
                 var onEvent = new List<MidiEvent>();
 
-                foreach (var midEvent in track.MidiEvents)
+                foreach (var midEvent in track.MidiEvents) switch (midEvent.MidiEventType)
                 {
-                    switch (midEvent.MidiEventType)
-                    {
-                        case MidiEventType.NoteOff: offEvent.Add(midEvent); continue;
-                        case MidiEventType.NoteOn: onEvent.Add(midEvent); continue;
-                    }
+                    case MidiEventType.NoteOff: offEvent.Add(midEvent); continue;
+                    case MidiEventType.NoteOn: onEvent.Add(midEvent); continue;
                 }
 
                 using (var pool = new SpritePool(layer, "sb/p.png", OsbOrigin.BottomCentre, (p, s, e) =>
@@ -176,11 +173,12 @@ namespace StorybrewScripts
                     
                     // Check for mismatched notes
                     // If one is found, use the note with the closest future time and same note name
-                    if (onEvent[i].Note != offEvent[i].Note) 
+                    if (onEvent[i].Note % 12 != offEvent[i].Note % 12) 
                     {
-                        Log($"Found mismatched note: On: {noteName}, Off: {(NoteName)(offEvent[i].Note % 12)}");
-                        for (var j = i; j < offEvent.Count; j++) 
-                            if (onEvent[i].Note == offEvent[j].Note && offEvent[j].Time > onEvent[i].Time) 
+                        Log($"Found mismatched note - On: {noteName}, Off: {(NoteName)(offEvent[i].Note % 12)}");
+                        
+                        for (var j = i - 2; j < offEvent.Count; j++) 
+                        if (onEvent[i].Note % 12 == offEvent[j].Note % 12 && offEvent[j].Time > onEvent[i].Time) 
                         {
                             endTime = offEvent[j].Time;
                             break;
@@ -188,30 +186,30 @@ namespace StorybrewScripts
                     }
                     
                     time = (int)(time * offset + 25);
-                    endTime = (int)(endTime * offset + 25);
+                    endTime = (int)(endTime * offset + 20);
                     var length = endTime - time;
 
                     if (length <= 0) continue;
 
                     // Edit the note size
-                    var noteLength = length * lengthMultiplier - .06f;
-                    var noteWidth = noteName.ToString().Contains("Sharp") ?  noteWidthScale * .5f : noteWidthScale;
+                    var noteLength = length * lengthMultiplier;
+                    var noteWidth = noteName.ToString().Contains("Sharp") ? noteWidthScale * .5f : noteWidthScale;
 
                     // Construct an ID for the current note as a dictionary key
                     var key = $"{noteName}{octave}";
 
                     // Create note sprite (position matched with ID)
-                    var n = pool.Get(time - scrollTime, endTime - cut);
+                    var n = pool.Get(time - scrollTime, endTime);
                     if (n.StartTime != double.MaxValue) n.ScaleVec(time - scrollTime, noteWidth, noteLength);
                     n.Move(time - scrollTime, time, positions[key], 0, positions[key], 240);
-                    n.ScaleVec(time, endTime - cut, noteWidth, noteLength, noteWidth, 0);
+                    n.ScaleVec(time, endTime, noteWidth, noteLength, noteWidth, 0);
 
                     // Activate the key ID's corresponding highlights
                     var splashes = highlights[key]; // Item1 = key highlight, Item2 = splash
                     splashes.Item1.Fade(time, time, 0, 1);
-                    splashes.Item1.Fade(endTime - cut, endTime - cut, 1, 0);
                     splashes.Item2.Fade(time, time, 0, 1);
-                    splashes.Item2.Fade(endTime - cut, endTime - cut, 1, 0);
+                    splashes.Item1.Fade(endTime, 0);
+                    splashes.Item2.Fade(endTime, 0);
                 }
             }
 
