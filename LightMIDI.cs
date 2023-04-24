@@ -88,7 +88,7 @@ namespace StorybrewScripts
                 // Create black keys
                 if (keyFile[keyFile.Length - 5] == '0')
                 {
-                    pX += whiteKeySpacing * .5f; // Flat notes are half the width of regular notes
+                    pX += whiteKeySpacing * .5f; // Black keys are half the width of white keys
 
                     var pb = layer.CreateSprite("sb/k/bb.png", OsbOrigin.TopCentre, new Vector2(pX, 240)); // Key sprite
                     pb.Scale(-1843, pScale);
@@ -174,15 +174,12 @@ namespace StorybrewScripts
                     var time = onEvent[i].Time;
                     var endTime = offEvent[i].Time;
                     
-                    // Check for non-matching notes
+                    // Check for mismatched notes
                     // If one is found, use the note with the closest future time and same note name
-                    if (onEvent[i].Note % 12 != offEvent[i].Note % 12) 
+                    if (onEvent[i].Note != offEvent[i].Note) 
                     {
                         Log($"Found mismatched note: On: {noteName}, Off: {(NoteName)(offEvent[i].Note % 12)}");
-
-                        foreach (var off in offEvent)
-                        if (onEvent[i].Note % 12 != off.Note % 12 || off.Time <= onEvent[i].Time) continue;
-                        else 
+                        foreach (var off in offEvent) if (onEvent[i].Note == off.Note && off.Time > onEvent[i].Time) 
                         {
                             endTime = off.Time;
                             break;
@@ -197,8 +194,7 @@ namespace StorybrewScripts
 
                     // Edit the note size
                     var noteLength = length * lengthMultiplier - .06f;
-                    var noteWidth = noteName.ToString().Contains("Sharp") ? 
-                        noteWidthScale * .5f : noteWidthScale;
+                    var noteWidth = noteName.ToString().Contains("Sharp") ?  noteWidthScale * .5f : noteWidthScale;
 
                     // Construct an ID for the current note as a dictionary key
                     var key = $"{noteName}{octave}";
