@@ -167,14 +167,18 @@ namespace StorybrewScripts
                 }))
                 for (var i = 0; i < onEvent.Count; i++)
                 {
+                    // Match integers to a identifier value
                     var noteName = (NoteName)(onEvent[i].Note % 12);
                     var octave = onEvent[i].Note / 12 - 1;
 
                     var time = onEvent[i].Time;
                     var endTime = offEvent[i].Time;
+                    
+                    // Check for non-matching notes
+                    // If one is found, use the note with the closest future time and same note name
                     if (onEvent[i].Note % 12 != offEvent[i].Note % 12) 
                     {
-                        Log($"found not matching note: {noteName}, {(NoteName)(offEvent[i].Note % 12)}");
+                        Log($"Found mismatched note: On: {noteName}, Off: {(NoteName)(offEvent[i].Note % 12)}");
 
                         foreach (var off in offEvent)
                         if (onEvent[i].Note % 12 != off.Note % 12 || off.Time <= onEvent[i].Time) continue;
@@ -184,6 +188,7 @@ namespace StorybrewScripts
                             break;
                         }
                     }
+                    
                     time = (int)(time * offset + 25);
                     endTime = (int)(endTime * offset + 25);
                     var length = endTime - time;
