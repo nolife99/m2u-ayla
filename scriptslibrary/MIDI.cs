@@ -132,14 +132,28 @@ namespace MIDI
 
         static class Reader
         {
-            internal static short Read16(byte[] data, ref int i) 
-                => (data[i++] << 8) | data[i++];
-                
-            internal static int Read32(byte[] data, ref int i) 
-                => (data[i++] << 24) | (data[i++] << 16) | (data[i++] << 8) | data[i++];
+            internal unsafe static short Read16(byte[] data, ref int i)
+            {
+                fixed (byte* pData = &data[i])
+                {
+                    i += 2;
+                    return (short)((*pData << 8) | *(pData + 1));
+                }
+            }
 
-            internal static byte Read8(byte[] data, ref int i) 
-                => data[i++];
+            internal unsafe static int Read32(byte[] data, ref int i)
+            {
+                fixed (byte* pData = &data[i])
+                {
+                    i += 4;
+                    return (*pData << 24) | (*(pData + 1) << 16) | (*(pData + 2) << 8) | *(pData + 3);
+                }
+            }
+
+            internal unsafe static byte Read8(byte[] data, ref int i)
+            {
+                fixed (byte* pData = &data[i++]) return *pData;
+            }
 
             internal static byte[] ReadAllBytesFromStream(Stream input)
             {
@@ -161,20 +175,26 @@ namespace MIDI
                 return result;
             }
 
-            internal static int ReadVarInt(byte[] data, ref int i)
+            internal static unsafe int ReadVarInt(byte[] data, ref int i)
             {
-                var result = (int)data[i++];
-                if ((result & 0x80) == 0) return result;
-                result &= 0x7F;
-
-                for (var j = 0; j < 3; j++)
+                fixed (byte* pData = data)
                 {
-                    var value = (int)data[i++];
-                    result = (result << 7) | (value & 0x7F);
-                    if ((value & 0x80) == 0) break;
-                }
+                    var pCurrent = pData + i;
+                    var result = *pCurrent++;
+                    i++;
+                    if ((result & 0x80) == 0) return result;
+                    result &= 0x7F;
 
-                return result;
+                    for (var j = 0; j < 3; j++)
+                    {
+                        var value = *pCurrent++;
+                        i++;
+                        result = (result << 7) | (value & 0x7F);
+                        if ((value & 0x80) == 0) break;
+                    }
+
+                    return result;
+                }
             }
         }
     }
