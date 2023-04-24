@@ -179,9 +179,10 @@ namespace StorybrewScripts
                     if (onEvent[i].Note != offEvent[i].Note) 
                     {
                         Log($"Found mismatched note: On: {noteName}, Off: {(NoteName)(offEvent[i].Note % 12)}");
-                        foreach (var off in offEvent) if (onEvent[i].Note == off.Note && off.Time > onEvent[i].Time) 
+                        for (var j = i; j < offEvent.Count; j++) 
+                            if (onEvent[i].Note == offEvent[j].Note && offEvent[j].Time > onEvent[i].Time) 
                         {
-                            endTime = off.Time;
+                            endTime = offEvent[j].Time;
                             break;
                         }
                     }
