@@ -2,13 +2,12 @@ using OpenTK;
 using OpenTK.Graphics;
 using StorybrewCommon.Scripting;
 using StorybrewCommon.Storyboarding;
-using Melanchall.DryWetMidi.Core;
-using Melanchall.DryWetMidi.Interaction;
 using System.Collections.Generic;
+using MIDI;
 
 namespace StorybrewScripts
 {
-    class MidiManager : StoryboardObjectGenerator
+    class LightMIDI : StoryboardObjectGenerator
     {
         static readonly char[] keyNames = { 'C', 'D', 'E', 'F', 'G', 'A', 'B' };
         static readonly Dictionary<char, string> keyFiles = new Dictionary<char, string>
@@ -139,49 +138,80 @@ namespace StorybrewScripts
 
             // Offset the MIDI accordingly to match the beatmap's time (play around with it?)
             const float offset = 155 / 192.2f;
-            var cut = (float)(Beatmap.GetTimingPointAt(25).BeatDuration / 16); // Shorten note time by little
+            var cut = (float)(Beatmap.GetTimingPointAt(25).BeatDuration / 40); // Shorten note time by little
 
             // Generate the notes in a nested loop for each track
-            var chunks = MidiFile.Read(AssetPath + "/" + MIDIPath).GetTrackChunks();
-            chunks.ForEach(track =>
+            var file = new MidiFile(AssetPath + "/" + MIDIPath);
+            foreach (var track in file.Tracks)
             {
+                var offEvent = new List<MidiEvent>();
+                var onEvent = new List<MidiEvent>();
+
+                foreach (var midEvent in track.MidiEvents)
+                {
+                    switch (midEvent.MidiEventType)
+                    {
+                        case MidiEventType.NoteOff: offEvent.Add(midEvent); continue;
+                        case MidiEventType.NoteOn: onEvent.Add(midEvent); continue;
+                    }
+                }
+
                 using (var pool = new SpritePool(layer, "sb/p.png", OsbOrigin.BottomCentre, (p, s, e) =>
                 {
                     p.Additive(s);
                     p.Fade(s, .6f);
 
                     // Color the notes according to the current track's index
-                    if (chunks.IndexOf(track) == 0) p.Color(s, new Color4(200, 255, 255, 0));
+                    if (track.Index == 0) p.Color(s, new Color4(200, 255, 255, 0));
                     else p.Color(s, new Color4(120, 120, 230, 0));
                 }))
-                track.GetNotes().ForEach(note =>
+                for (var i = 0; i < onEvent.Count; i++)
                 {
-                    // Offset the note's time and length
-                    note.Time = (int)(note.Time * offset + 25);
-                    note.Length = (int)(note.Length * offset + 25);
+                    var noteName = (NoteName)(onEvent[i].Note % 12);
+                    var octave = onEvent[i].Note / 12 - 1;
+
+                    var time = onEvent[i].Time;
+                    var endTime = offEvent[i].Time;
+                    if (onEvent[i].Note % 12 != offEvent[i].Note % 12) 
+                    {
+                        Log($"found not matching note: {noteName}, {(NoteName)(offEvent[i].Note % 12)}");
+
+                        foreach (var off in offEvent)
+                        if (onEvent[i].Note % 12 != off.Note % 12 || off.Time <= onEvent[i].Time) continue;
+                        else 
+                        {
+                            endTime = off.Time;
+                            break;
+                        }
+                    }
+                    time = (int)(time * offset + 25);
+                    endTime = (int)(endTime * offset + 25);
+                    var length = endTime - time;
+
+                    if (length <= 0) continue;
 
                     // Edit the note size
-                    var noteLength = note.Length * lengthMultiplier - .15f;
-                    var noteWidth = note.NoteName.ToString().Contains("Sharp") ? 
+                    var noteLength = length * lengthMultiplier - .06f;
+                    var noteWidth = noteName.ToString().Contains("Sharp") ? 
                         noteWidthScale * .5f : noteWidthScale;
 
                     // Construct an ID for the current note as a dictionary key
-                    var key = $"{note.NoteName}{note.Octave}";
+                    var key = $"{noteName}{octave}";
 
                     // Create note sprite (position matched with ID)
-                    var n = pool.Get(note.Time - scrollTime, note.EndTime - cut);
-                    if (n.StartTime != double.MaxValue) n.ScaleVec(note.Time - scrollTime, noteWidth, noteLength);
-                    n.Move(note.Time - scrollTime, note.Time, positions[key], 0, positions[key], 240);
-                    n.ScaleVec(note.Time, note.EndTime - cut, noteWidth, noteLength, noteWidth, 0);
+                    var n = pool.Get(time - scrollTime, endTime - cut);
+                    if (n.StartTime != double.MaxValue) n.ScaleVec(time - scrollTime, noteWidth, noteLength);
+                    n.Move(time - scrollTime, time, positions[key], 0, positions[key], 240);
+                    n.ScaleVec(time, endTime - cut, noteWidth, noteLength, noteWidth, 0);
 
                     // Activate the key ID's corresponding highlights
                     var splashes = highlights[key]; // Item1 = key highlight, Item2 = splash
-                    splashes.Item1.Fade(note.Time, note.Time, 0, 1);
-                    splashes.Item1.Fade(note.EndTime - cut, note.EndTime - cut, 1, 0);
-                    splashes.Item2.Fade(note.Time, note.Time, 0, 1);
-                    splashes.Item2.Fade(note.EndTime - cut, note.EndTime - cut, 1, 0);
-                });
-            });
+                    splashes.Item1.Fade(time, time, 0, 1);
+                    splashes.Item1.Fade(endTime - cut, endTime - cut, 1, 0);
+                    splashes.Item2.Fade(time, time, 0, 1);
+                    splashes.Item2.Fade(endTime - cut, endTime - cut, 1, 0);
+                }
+            }
 
             // Remove any unused highlights
             foreach (var highlight in highlights.Values)
