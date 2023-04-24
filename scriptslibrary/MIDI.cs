@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace MIDI
+namespace StorybrewScripts
 {
     internal class MidiFile
     {
@@ -99,10 +99,7 @@ namespace MIDI
 
                         if (metaEventType >= 0x01 && metaEventType <= 0x0F)
                         {
-                            var textLength = Reader.ReadVarInt(data, ref position);
-                            var textValue = Reader.ReadString(data, ref position, textLength);
-                            var textEvent = new TextEvent { Time = time, Type = metaEventType, Value = textValue };
-                            track.TextEvents.Add(textEvent);
+                            // Parsing text events isn't needed in this project
                         }
                         else
                         {
@@ -188,7 +185,6 @@ namespace MIDI
     {
         internal int Index;
         internal List<MidiEvent> MidiEvents = new List<MidiEvent>();
-        internal List<TextEvent> TextEvents = new List<TextEvent>();
     }
 
     internal struct MidiEvent
@@ -204,17 +200,7 @@ namespace MIDI
         internal int Note => this.Arg2;
         internal int Velocity => this.Arg3;
 
-        internal ControlChangeType ControlChangeType => (ControlChangeType)this.Arg2;
-
         internal int Value => this.Arg3;
-    }
-
-    internal struct TextEvent
-    {
-        internal int Time;
-        internal byte Type;
-        internal string Value;
-        internal TextEventType TextEventType => (TextEventType)this.Type;
     }
 
     internal enum MidiEventType : byte
@@ -227,23 +213,6 @@ namespace MIDI
         ChannelAfterTouch = 0xD0,
         PitchBendChange = 0xE0,
         MetaEvent = 0xFF
-    }
-
-    internal enum ControlChangeType : byte
-    {
-        BankSelect = 0x00,
-        Modulation = 0x01,
-        Volume = 0x07,
-        Balance = 0x08,
-        Pan = 0x0A,
-        Sustain = 0x40
-    }
-
-    internal enum TextEventType : byte
-    {
-        Text = 0x01,
-        TrackName = 0x03,
-        Lyric = 0x05,
     }
 
     internal enum MetaEventType : byte

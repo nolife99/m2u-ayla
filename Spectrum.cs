@@ -23,7 +23,7 @@ namespace StorybrewScripts
                 var fft = GetFft(time, (int)(barCount * 1.3), null, OsbEasing.InExpo);
                 for (var i = 0; i < barCount; i++)
                 {
-                    var height = Math.Pow(Math.Log10(1 + fft[i] * 450) * 10, 1.5);
+                    var height = Math.Pow(Math.Log10(1 + fft[i] * 450) * 5, 2);
                     if (height < 1) height = 1;
 
                     heightKeyframe[i].Add(time, (float)height);
@@ -32,18 +32,16 @@ namespace StorybrewScripts
 
             for (var i = 0; i < barCount; i++)
             {
-                var bar = GetLayer("").CreateSprite("sb/px.png", OsbOrigin.Centre, 
+                var bar = GetLayer("").CreateSprite("sb/p.png", OsbOrigin.Centre, 
                     new Vector2((332 - width / 2) + i * (width / barCount), 380));
                 bar.Color(startTime, Color);
-                bar.Fade(-2475 + i * (689f / barCount), startTime, 0, .6);
-                bar.Fade(endTime + i * (689f / barCount), 173444, .6, 0);
+                bar.Fade(-2475 + i * (689 / barCount), startTime, 0, .6);
+                bar.Fade(endTime + i * (689 / barCount), 173444, .6, 0);
                 bar.Additive(startTime);
 
                 heightKeyframe[i].Simplify1dKeyframes(6, h => h);
-                heightKeyframe[i].ForEachPair((s, e) 
-                    => bar.ScaleVec(s.Time, e.Time, 2, s.Value, 2, e.Value), 
-                    1, s => (int)s
-                );
+                heightKeyframe[i].ForEachPair((s, e) => bar.ScaleVec(s.Time, e.Time, 2, s.Value, 2, e.Value), 
+                    1, s => (int)s);
             }
         }
     }

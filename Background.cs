@@ -23,7 +23,7 @@ namespace StorybrewScripts
             blur.Fade(-1843, -749, 0, 1);
             blur.Fade(171756, 173057, 1, 0);
 
-            var line = overlay.CreateSprite("sb/px.png", OsbOrigin.CentreLeft, new Vector2(0, 240));
+            var line = overlay.CreateSprite("sb/p.png", OsbOrigin.CentreLeft, new Vector2(0, 240));
             line.ScaleVec(-2000, -1000, 0, 2, 854, 2);
             line.Fade(-2000, .5f);
             line.MoveX(171756, 171756, -107, 747);

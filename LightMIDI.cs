@@ -3,7 +3,7 @@ using OpenTK.Graphics;
 using StorybrewCommon.Scripting;
 using StorybrewCommon.Storyboarding;
 using System.Collections.Generic;
-using MIDI;
+using System;
 
 namespace StorybrewScripts
 {
@@ -21,8 +21,7 @@ namespace StorybrewScripts
             {'B', "01"}
         };
 
-        const int pWidth = 58;
-        const float noteWidthScale = .6f, splashHeight = .2f, splashWidth = .6f, whiteKeySpacing = 640f / 52;
+        const float noteWidthScale = 12, whiteKeySpacing = 640f / 52;
 
         [Configurable] public string MIDIPath = "";
         protected override void Generate()
@@ -30,6 +29,7 @@ namespace StorybrewScripts
             #region Initialize Constants
 
             var layer = GetLayer("");
+            var pScale = (float)Math.Round(.017094f * noteWidthScale, 3);
 
             // Method to match key ID to sprite
             string getKeyFile(string keyType, bool highlight = false)
@@ -40,7 +40,7 @@ namespace StorybrewScripts
             #region Draw Piano
 
             var keys = new HashSet<OsbSprite>(); // In case of duplicates
-            var keyPositions = new Dictionary<string, float>(); // Matches a note's ID to a x-coordinate
+            var keyPositions = new Dictionary<string, int>(); // Matches a note's ID to a x-coordinate
             var keyHighlights = new Dictionary<string, (OsbSprite, OsbSprite)>(); // Matches a note's ID to 2 highlights
 
             // 52 white keys on a piano
@@ -68,8 +68,8 @@ namespace StorybrewScripts
                     keyFile = new string(chars);
                 }
 
-                var pScale = GetMapsetBitmap("sb/p.png").Width / (float)pWidth * noteWidthScale; // Scale the keys according to the piano's width
-                var pX = whiteKeySpacing * i + GetMapsetBitmap("sb/p.png").Width * pScale; // Position the keyboard at the center
+                // Scale and position the keys
+                var pX = (int)(whiteKeySpacing * i + pScale * 37);
 
                 var p = layer.CreateSprite(keyFile, OsbOrigin.TopCentre, new Vector2(pX, 240)); // Key sprite
                 p.Scale(-1843, pScale);
@@ -78,7 +78,7 @@ namespace StorybrewScripts
                 hl.Scale(25, pScale);
 
                 var sp = layer.CreateSprite("sb/l.png", OsbOrigin.BottomCentre, new Vector2(pX, 240)); // Splash sprite
-                sp.ScaleVec(25, splashWidth, splashHeight);
+                sp.ScaleVec(25, .6f, .2f);
 
                 var keyFullName = $"{keyName}{keyOctave}"; // Construct an ID for the piano key
                 keyHighlights[keyFullName] = (hl, sp); // Assign the highlight and splash to the ID
@@ -88,7 +88,7 @@ namespace StorybrewScripts
                 // Create black keys
                 if (keyFile[keyFile.Length - 5] == '0')
                 {
-                    pX += whiteKeySpacing * .5f; // Black keys are half the width of white keys
+                    pX += (int)(whiteKeySpacing * .5f); // Black keys are half the width of white keys
 
                     var pb = layer.CreateSprite("sb/k/bb.png", OsbOrigin.TopCentre, new Vector2(pX, 240)); // Key sprite
                     pb.Scale(-1843, pScale);
@@ -97,7 +97,7 @@ namespace StorybrewScripts
                     pbhl.Scale(25, pScale);
 
                     sp = layer.CreateSprite("sb/l.png", OsbOrigin.BottomCentre, new Vector2(pX, 240)); // Splash sprite
-                    sp.ScaleVec(25, splashWidth * .5f, splashHeight);
+                    sp.ScaleVec(25, .3f, .2f);
 
                     keyFullName = $"{keyName}Sharp{keyOctave}"; // Reconstruct an ID for the piano key
                     keyHighlights[keyFullName] = (pbhl, sp); // Assign the highlight and splash to the ID
@@ -128,13 +128,11 @@ namespace StorybrewScripts
             CreateNotes(keyPositions, keyHighlights, layer);
         }
         void CreateNotes(
-            Dictionary<string, float> positions, Dictionary<string, (OsbSprite, OsbSprite)> highlights, 
+            Dictionary<string, int> positions, Dictionary<string, (OsbSprite, OsbSprite)> highlights, 
             StoryboardSegment layer)
         {
             // Constants
             var scrollTime = 2500;
-            var noteHeight = GetMapsetBitmap("sb/p.png").Height;
-            var lengthMultiplier = 1f / noteHeight * (240f / scrollTime);
 
             // Offset the MIDI accordingly to match the beatmap's time (play around with it?)
             const float offset = 155 / 192.2f;
@@ -175,7 +173,7 @@ namespace StorybrewScripts
                     // If one is found, use the note with the closest future time and same note name
                     if (onEvent[i].Note % 12 != offEvent[i].Note % 12) 
                     {
-                        Log($"Found mismatched note - On: {noteName}, Off: {(NoteName)(offEvent[i].Note % 12)}");
+                        Log($"Found mismatched note - {noteName}, {(NoteName)(offEvent[i].Note % 12)}");
                         
                         for (var j = i - 2; j < offEvent.Count; j++) 
                         if (onEvent[i].Note % 12 == offEvent[j].Note % 12 && offEvent[j].Time > onEvent[i].Time) 
@@ -192,7 +190,7 @@ namespace StorybrewScripts
                     if (length <= 0) continue;
 
                     // Edit the note size
-                    var noteLength = length * lengthMultiplier;
+                    var noteLength = (int)Math.Round(length * 240f / scrollTime);
                     var noteWidth = noteName.ToString().Contains("Sharp") ? noteWidthScale * .5f : noteWidthScale;
 
                     // Construct an ID for the current note as a dictionary key
