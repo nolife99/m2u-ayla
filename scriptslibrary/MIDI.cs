@@ -4,7 +4,7 @@ using System.IO;
 
 namespace StorybrewScripts
 {
-    internal class MidiFile
+    internal unsafe class MidiFile
     {
         internal readonly int Format, TicksPerQuarterNote, TracksCount;
         internal readonly MidiTrack[] Tracks;
@@ -14,38 +14,41 @@ namespace StorybrewScripts
         {
             var position = 0;
 
-            if (Reader.ReadString(data, ref position, 4) != "MThd") throw new FormatException("Invalid file header (expected MThd)");
-            if (Reader.Read32(data, ref position) != 6) throw new FormatException("Invalid header length (expected 6)");
+            fixed (byte* pData = data)
+            {
+                if (Reader.ReadString(pData, ref position, 4) != "MThd") throw new FormatException("Invalid file header (expected MThd)");
+                if (Reader.Read32(pData, ref position) != 6) throw new FormatException("Invalid header length (expected 6)");
 
-            this.Format = Reader.Read16(data, ref position);
-            this.TracksCount = Reader.Read16(data, ref position);
-            this.TicksPerQuarterNote = Reader.Read16(data, ref position);
+                this.Format = Reader.Read16(pData, ref position);
+                this.TracksCount = Reader.Read16(pData, ref position);
+                this.TicksPerQuarterNote = Reader.Read16(pData, ref position);
 
-            if ((this.TicksPerQuarterNote & 0x8000) != 0) throw new FormatException("Invalid timing mode (SMPTE timecode not supported)");
+                if ((this.TicksPerQuarterNote & 0x8000) != 0) throw new FormatException("Invalid timing mode (SMPTE timecode not supported)");
 
-            this.Tracks = new MidiTrack[this.TracksCount];
-            for (var i = 0; i < this.TracksCount; i++) this.Tracks[i] = ParseTrack(i, data, ref position);
+                this.Tracks = new MidiTrack[this.TracksCount];
+                for (var i = 0; i < this.TracksCount; i++) this.Tracks[i] = ParseTrack(i, pData, ref position);
+            }
         }
 
-        static bool ParseMetaEvent(byte[] data, ref int position, byte metaEventType, ref byte data1, ref byte data2)
+        static bool ParseMetaEvent(byte* data, ref int position, byte metaEventType, ref byte data1, ref byte data2)
         {
             switch (metaEventType)
             {
                 case (byte)MetaEventType.Tempo:
-                    var mspqn = (data[position + 1] << 16) | (data[position + 2] << 8) | data[position + 3];
+                    var mspqn = (*(data + position + 1) << 16) | (*(data + position + 2) << 8) | *(data + position + 3);
                     data1 = (byte)(60000000D / mspqn);
                     position += 4;
                     return true;
 
                 case (byte)MetaEventType.TimeSignature:
-                    data1 = data[position + 1];
-                    data2 = (byte)Math.Pow(2, data[position + 2]);
+                    data1 = *(data + position + 1);
+                    data2 = (byte)Math.Pow(2, *(data + position + 2));
                     position += 5;
                     return true;
 
                 case (byte)MetaEventType.KeySignature:
-                    data1 = data[position + 1];
-                    data2 = data[position + 2];
+                    data1 = *(data + position + 1);
+                    data2 = *(data + position + 2);
                     position += 3;
                     return true;
 
@@ -55,7 +58,7 @@ namespace StorybrewScripts
                     return false;
             }
         }
-        static MidiTrack ParseTrack(int index, byte[] data, ref int position)
+        static MidiTrack ParseTrack(int index, byte* data, ref int position)
         {
             if (Reader.ReadString(data, ref position, 4) != "MTrk") throw new FormatException("Invalid track header (expected MTrk)");
 
@@ -126,57 +129,42 @@ namespace StorybrewScripts
 
         static class Reader
         {
-            internal unsafe static short Read16(byte[] data, ref int i) 
-            {
-                fixed (byte* pData = data)
-                    return (short)unchecked((*(pData + i++) << 8) | *(pData + i++));
-            }
+            internal static short Read16(byte* data, ref int i) 
+                => (short)unchecked((*(data + i++) << 8) | *(data + i++));
                             
-            internal unsafe static int Read32(byte[] data, ref int i) 
+            internal static int Read32(byte* data, ref int i) 
+                => unchecked((*(data + i++) << 24) | (*(data + i++) << 16) | (*(data + i++) << 8) | *(data + i++));
+
+            internal static byte Read8(byte* data, ref int i) 
+                => unchecked(*(data + i++));
+
+            internal static string ReadString(byte* data, ref int i, int length)
             {
-                fixed (byte* pData = data) 
-                    return unchecked((*(pData + i++) << 24) | (*(pData + i++) << 16) | (*(pData + i++) << 8) | *(pData + i++));
+                var result = new string((sbyte*)data, i, length, System.Text.Encoding.ASCII);
+                i += length;
+                return result;
             }
 
-            internal unsafe static byte Read8(byte[] data, ref int i) 
+            internal static int ReadVarInt(byte* data, ref int i)
             {
-                fixed (byte* pData = data)
-                    return unchecked(*(pData + i++));
-            }
-
-            internal static unsafe string ReadString(byte[] data, ref int i, int length)
-            {
-                fixed (byte* pData = data)
+                var p = data + i;
+                int result = *p++;
+                if ((result & 0x80) == 0)
                 {
-                    var result = new string((sbyte*)pData, i, length, System.Text.Encoding.ASCII);
-                    i += length;
+                    i = (int)(p - data);
                     return result;
                 }
-            }
+                result &= 0x7F;
 
-            internal static unsafe int ReadVarInt(byte[] data, ref int i)
-            {
-                fixed (byte* pData = data)
+                for (var j = 0; j < 3; j++)
                 {
-                    var p = pData + i;
-                    int result = *p++;
-                    if ((result & 0x80) == 0)
-                    {
-                        i = (int)(p - pData);
-                        return result;
-                    }
-                    result &= 0x7F;
-
-                    for (var j = 0; j < 3; j++)
-                    {
-                        int value = *p++;
-                        result = (result << 7) | (value & 0x7F);
-                        if ((value & 0x80) == 0) break;
-                    }
-
-                    i = (int)(p - pData);
-                    return unchecked(result);
+                    int value = *p++;
+                    result = (result << 7) | (value & 0x7F);
+                    if ((value & 0x80) == 0) break;
                 }
+
+                i = (int)(p - data);
+                return unchecked(result);
             }
         }
     }

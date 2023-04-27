@@ -171,12 +171,12 @@ namespace StorybrewScripts
                     
                     // Check for mismatched notes
                     // If one is found, use the note with the closest future time and same note name
-                    if (onEvent[i].Note % 12 != offEvent[i].Note % 12) 
+                    if (onEvent[i].Note != offEvent[i].Note) 
                     {
                         Log($"Found mismatched note - {noteName}, {(NoteName)(offEvent[i].Note % 12)}");
                         
                         for (var j = i - 2; j < offEvent.Count; j++) 
-                        if (onEvent[i].Note % 12 == offEvent[j].Note % 12 && offEvent[j].Time > onEvent[i].Time) 
+                        if (onEvent[i].Note == offEvent[j].Note && offEvent[j].Time > time) 
                         {
                             endTime = offEvent[j].Time;
                             break;
