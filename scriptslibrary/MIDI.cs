@@ -19,14 +19,14 @@ namespace StorybrewScripts
                 if (Reader.ReadString(pData, ref position, 4) != "MThd") throw new FormatException("Invalid file header (expected MThd)");
                 if (Reader.Read32(pData, ref position) != 6) throw new FormatException("Invalid header length (expected 6)");
 
-                this.Format = Reader.Read16(pData, ref position);
-                this.TracksCount = Reader.Read16(pData, ref position);
-                this.TicksPerQuarterNote = Reader.Read16(pData, ref position);
+                Format = Reader.Read16(pData, ref position);
+                TracksCount = Reader.Read16(pData, ref position);
+                TicksPerQuarterNote = Reader.Read16(pData, ref position);
 
-                if ((this.TicksPerQuarterNote & 0x8000) != 0) throw new FormatException("Invalid timing mode (SMPTE timecode not supported)");
+                if ((TicksPerQuarterNote & 0x8000) != 0) throw new FormatException("Invalid timing mode (SMPTE timecode not supported)");
 
-                this.Tracks = new MidiTrack[this.TracksCount];
-                for (var i = 0; i < this.TracksCount; i++) this.Tracks[i] = ParseTrack(i, pData, ref position);
+                Tracks = new MidiTrack[TracksCount];
+                for (var i = 0; i < TracksCount; i++) Tracks[i] = ParseTrack(i, pData, ref position);
             }
         }
 
@@ -72,7 +72,7 @@ namespace StorybrewScripts
             while (position < trackEnd)
             {
                 time += Reader.ReadVarInt(data, ref position);
-                var peekByte = data[position];
+                var peekByte = *(data + position);
 
                 if ((peekByte & 0x80) != 0)
                 {
@@ -86,7 +86,7 @@ namespace StorybrewScripts
                     var channel = (byte)((status & 0x0F) + 1);
 
                     var data1 = data[position++];
-                    var data2 = (eventType & 0xE0) != 0xC0 ? data[position++] : (byte)0;
+                    var data2 = (eventType & 0xE0) != 0xC0 ? *(data + position++) : (byte)0;
 
                     if (eventType == (byte)MidiEventType.NoteOn && data2 == 0) eventType = (byte)MidiEventType.NoteOff;
 
@@ -178,17 +178,15 @@ namespace StorybrewScripts
     internal struct MidiEvent
     {
         internal int Time;
-
         internal byte Type, Arg1, Arg2, Arg3;
 
-        internal MidiEventType MidiEventType => (MidiEventType)this.Type;
-        internal MetaEventType MetaEventType => (MetaEventType)this.Arg1;
+        internal MidiEventType MidiEventType => (MidiEventType)Type;
+        internal MetaEventType MetaEventType => (MetaEventType)Arg1;
 
-        internal int Channel => this.Arg1;
-        internal int Note => this.Arg2;
-        internal int Velocity => this.Arg3;
-
-        internal int Value => this.Arg3;
+        internal int Channel => Arg1;
+        internal int Note => Arg2;
+        internal int Velocity => Arg3;
+        internal int Value => Arg3;
     }
 
     internal enum MidiEventType : byte

@@ -21,7 +21,8 @@ namespace StorybrewScripts
             {'B', "01"}
         };
 
-        const float noteWidthScale = 12, whiteKeySpacing = 640f / 52;
+        const int keyCount = 52;
+        const float noteWidthScale = 12, whiteKeySpacing = 640f / keyCount;
 
         [Configurable] public string MIDIPath = "";
         protected override void Generate()
@@ -29,9 +30,8 @@ namespace StorybrewScripts
             #region Initialize Constants
 
             var layer = GetLayer("");
-            var pScale = (float)Math.Round(.017094f * noteWidthScale, 3);
+            var pScale = (float)Math.Round(640 / keyCount * noteWidthScale, 3);
 
-            // Method to match key ID to sprite
             string getKeyFile(string keyType, bool highlight = false)
                 => highlight ? $"sb/k/{keyType}hl.png" : $"sb/k/{keyType}.png";
 
@@ -39,39 +39,36 @@ namespace StorybrewScripts
 
             #region Draw Piano
 
-            var keys = new HashSet<OsbSprite>(); // In case of duplicates
-            var keyPositions = new Dictionary<string, int>(); // Matches a note's ID to a x-coordinate
-            var keyHighlights = new Dictionary<string, (OsbSprite, OsbSprite)>(); // Matches a note's ID to 2 highlights
+            var keys = new HashSet<OsbSprite>();
+            var keyPositions = new Dictionary<string, int>();
+            var keyHighlights = new Dictionary<string, (OsbSprite, OsbSprite)>();
 
-            // 52 white keys on a piano
-            for (int i = 0, keyOctave = 0; i < 52; i++)
+            for (int i = 0, keyOctave = 0; i < keyCount; i++)
             {
-                var keyNameIndex = i % 7 - 2; // Start at A#-0 so offset by 2
-                if (keyNameIndex == 0) keyOctave++; // Increase the octave for every note reset
-                else if (keyNameIndex < 0) keyNameIndex = keyNames.Length + keyNameIndex; // If index is negative, access the array backwards
+                var keyNameIndex = i % 7 - 2;
+                if (keyNameIndex == 0) keyOctave++;
+                else if (keyNameIndex < 0) keyNameIndex = keyNames.Length + keyNameIndex;
 
-                var keyName = keyNames[keyNameIndex]; // Get index's corresponding note
-                var keyType = keyFiles[keyName]; // Get corresponding key ID to note
-                var keyFile = getKeyFile(keyType); // Get corresponding sprite to key ID
+                var keyName = keyNames[keyNameIndex];
+                var keyType = keyFiles[keyName];
+                var keyFile = getKeyFile(keyType);
 
-                // At the start and end of each loop, make sure the piano sprites are correct
                 if (i == 0)
                 {
                     var chars = keyFile.ToCharArray();
                     chars[chars.Length - 6] = '1';
                     keyFile = new string(chars);
                 }
-                else if (i == 51)
+                else if (i == keyCount - 1)
                 {
                     var chars = keyFile.ToCharArray();
                     chars[chars.Length - 5] = '1';
                     keyFile = new string(chars);
                 }
 
-                // Scale and position the keys
                 var pX = (int)(whiteKeySpacing * i + pScale * 37);
 
-                var p = layer.CreateSprite(keyFile, OsbOrigin.TopCentre, new Vector2(pX, 240)); // Key sprite
+                var p = layer.CreateSprite(keyFile, OsbOrigin.TopCentre, new Vector2(pX, 240));
                 p.Scale(-1843, pScale);
 
                 var hl = layer.CreateSprite(getKeyFile(keyType, true), OsbOrigin.TopCentre, new Vector2(pX, 240)); // Highlight sprite
@@ -80,33 +77,31 @@ namespace StorybrewScripts
                 var sp = layer.CreateSprite("sb/l.png", OsbOrigin.BottomCentre, new Vector2(pX, 240)); // Splash sprite
                 sp.ScaleVec(25, .6f, .2f);
 
-                var keyFullName = $"{keyName}{keyOctave}"; // Construct an ID for the piano key
-                keyHighlights[keyFullName] = (hl, sp); // Assign the highlight and splash to the ID
-                keyPositions[keyFullName] = pX; // Assign the piano key's x-coordinate to the ID
-                keys.Add(p); // Add the key sprite to the HashSet
+                var keyFullName = $"{keyName}{keyOctave}";
+                keyHighlights[keyFullName] = (hl, sp);
+                keyPositions[keyFullName] = pX;
+                keys.Add(p);
 
-                // Create black keys
                 if (keyFile[keyFile.Length - 5] == '0')
                 {
-                    pX += (int)(whiteKeySpacing * .5f); // Black keys are half the width of white keys
+                    pX += (int)(whiteKeySpacing * .5f);
 
-                    var pb = layer.CreateSprite("sb/k/bb.png", OsbOrigin.TopCentre, new Vector2(pX, 240)); // Key sprite
+                    var pb = layer.CreateSprite("sb/k/bb.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
                     pb.Scale(-1843, pScale);
 
-                    var pbhl = layer.CreateSprite("sb/k/bbhl.png", OsbOrigin.TopCentre, new Vector2(pX, 240)); // Highlight sprite
+                    var pbhl = layer.CreateSprite("sb/k/bbhl.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
                     pbhl.Scale(25, pScale);
 
-                    sp = layer.CreateSprite("sb/l.png", OsbOrigin.BottomCentre, new Vector2(pX, 240)); // Splash sprite
+                    sp = layer.CreateSprite("sb/l.png", OsbOrigin.BottomCentre, new Vector2(pX, 240));
                     sp.ScaleVec(25, .3f, .2f);
 
-                    keyFullName = $"{keyName}Sharp{keyOctave}"; // Reconstruct an ID for the piano key
-                    keyHighlights[keyFullName] = (pbhl, sp); // Assign the highlight and splash to the ID
-                    keyPositions[keyFullName] = pX; // Assign the piano key's x-coordinate to the ID
-                    keys.Add(pb); // Add the flat note sprite to the HashSet
+                    keyFullName = $"{keyName}Sharp{keyOctave}";
+                    keyHighlights[keyFullName] = (pbhl, sp);
+                    keyPositions[keyFullName] = pX;
+                    keys.Add(pb);
                 }
             }
 
-            // Fade in the key sprites with a delay
             var delay = (float)Beatmap.GetTimingPointAt(25).BeatDuration * 2 / keys.Count;
             var keyTime = 0f;
 
@@ -124,21 +119,16 @@ namespace StorybrewScripts
 
             #endregion
 
-            // Generate the falling piano notes
             CreateNotes(keyPositions, keyHighlights, layer);
         }
         void CreateNotes(
             Dictionary<string, int> positions, Dictionary<string, (OsbSprite, OsbSprite)> highlights, 
             StoryboardSegment layer)
         {
-            // Constants
             var scrollTime = 2500;
+            var offset = 155 / 192.2f;
+            var cut = (float)(Beatmap.GetTimingPointAt(25).BeatDuration / 64);
 
-            // Offset the MIDI accordingly to match the beatmap's time (play around with it?)
-            const float offset = 155 / 192.2f;
-            var cut = (float)(Beatmap.GetTimingPointAt(25).BeatDuration / 64); // Shorten note time by little
-
-            // Generate the notes in a nested loop for each track
             var file = new MidiFile(AssetPath + "/" + MIDIPath);
             foreach (var track in file.Tracks)
             {
@@ -156,21 +146,17 @@ namespace StorybrewScripts
                     p.Additive(s);
                     p.Fade(s, .6f);
 
-                    // Color the notes according to the current track's index
                     if (track.Index == 0) p.Color(s, new Color4(200, 255, 255, 0));
                     else p.Color(s, new Color4(120, 120, 230, 0));
                 }))
                 for (var i = 0; i < onEvent.Count; i++)
                 {
-                    // Match integers to a identifier value
                     var noteName = (NoteName)(onEvent[i].Note % 12);
                     var octave = onEvent[i].Note / 12 - 1;
 
                     var time = onEvent[i].Time;
                     var endTime = offEvent[i].Time;
-                    
-                    // Check for mismatched notes
-                    // If one is found, use the note with the closest future time and same note name
+
                     if (onEvent[i].Note != offEvent[i].Note) 
                     {
                         Log($"Found mismatched note - {noteName}, {(NoteName)(offEvent[i].Note % 12)}");
@@ -185,25 +171,21 @@ namespace StorybrewScripts
                     
                     time = (int)(time * offset + 25);
                     endTime = (int)(endTime * offset + 20);
-                    var length = endTime - time;
 
+                    var length = endTime - time;
                     if (length <= 0) continue;
 
-                    // Edit the note size
                     var noteLength = (int)Math.Round(length * 240f / scrollTime);
                     var noteWidth = noteName.ToString().Contains("Sharp") ? noteWidthScale * .5f : noteWidthScale;
 
-                    // Construct an ID for the current note as a dictionary key
                     var key = $"{noteName}{octave}";
 
-                    // Create note sprite (position matched with ID)
                     var n = pool.Get(time - scrollTime, endTime);
                     if (n.StartTime != double.MaxValue) n.ScaleVec(time - scrollTime, noteWidth, noteLength);
                     n.Move(time - scrollTime, time, positions[key], 0, positions[key], 240);
                     n.ScaleVec(time, endTime, noteWidth, noteLength, noteWidth, 0);
 
-                    // Activate the key ID's corresponding highlights
-                    var splashes = highlights[key]; // Item1 = key highlight, Item2 = splash
+                    var splashes = highlights[key];
                     splashes.Item1.Fade(time, time, 0, 1);
                     splashes.Item2.Fade(time, time, 0, 1);
                     splashes.Item1.Fade(endTime, 0);
@@ -211,7 +193,6 @@ namespace StorybrewScripts
                 }
             }
 
-            // Remove any unused highlights
             foreach (var highlight in highlights.Values)
             {
                 if (highlight.Item1.CommandCost <= 1) layer.Discard(highlight.Item1);

@@ -9,8 +9,8 @@ namespace StorybrewScripts
 {
     class Spectrum : StoryboardObjectGenerator
     {
-        protected override void Generate() => MakeSpectrum(25, 172670, new Color4(120, 120, 255, 0));
-        void MakeSpectrum(int startTime, int endTime, Color4 Color)
+        protected override void Generate() => MakeSpectrum(25, 172670);
+        void MakeSpectrum(int startTime, int endTime)
         {
             const int width = 290, barCount = 15;
 
@@ -34,7 +34,7 @@ namespace StorybrewScripts
             {
                 var bar = GetLayer("").CreateSprite("sb/p.png", OsbOrigin.Centre, 
                     new Vector2((332 - width / 2) + i * (width / barCount), 380));
-                bar.Color(startTime, Color);
+                bar.Color(startTime, new Color4(120, 120, 255, 0));
                 bar.Fade(-2475 + i * (689 / barCount), startTime, 0, .6);
                 bar.Fade(endTime + i * (689 / barCount), 173444, .6, 0);
                 bar.Additive(startTime);
