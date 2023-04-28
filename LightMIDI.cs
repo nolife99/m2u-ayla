@@ -3,6 +3,7 @@ using OpenTK.Graphics;
 using StorybrewCommon.Scripting;
 using StorybrewCommon.Storyboarding;
 using System.Collections.Generic;
+using System.Linq;
 using System;
 
 namespace StorybrewScripts
@@ -125,14 +126,13 @@ namespace StorybrewScripts
             StoryboardSegment layer)
         {
             var scrollTime = 2500;
-            var offset = 155 / 192.2f;
-            var cut = (float)(Beatmap.GetTimingPointAt(25).BeatDuration / 64);
-
+            
             var file = new MidiFile(AssetPath + "/" + MIDIPath);
             foreach (var track in file.Tracks)
             {
                 var offEvent = new List<MidiEvent>();
                 var onEvent = new List<MidiEvent>();
+                var offset = (float)Beatmap.TimingPoints.First().BeatDuration / file.TicksPerQuarterNote;
 
                 foreach (var midEvent in track.MidiEvents) switch (midEvent.MidiEventType)
                 {
@@ -143,10 +143,8 @@ namespace StorybrewScripts
                 using (var pool = new SpritePool(layer, "sb/p.png", OsbOrigin.BottomCentre, (p, s, e) =>
                 {
                     p.Additive(s);
-                    p.Fade(s, .6f);
-
-                    if (track.Index == 0) p.Color(s, new Color4(200, 255, 255, 0));
-                    else p.Color(s, new Color4(120, 120, 230, 0));
+                    if (track.Index == 0) p.Color(s, new Color4(140, 175, 195, 0));
+                    else p.Color(s, new Color4(60, 60, 170, 0));
                 }))
                 for (var i = 0; i < onEvent.Count; i++)
                 {
@@ -167,7 +165,7 @@ namespace StorybrewScripts
                             break;
                         }
                     }
-                    
+
                     time = (int)(time * offset + 25);
                     endTime = (int)(endTime * offset + 20);
 

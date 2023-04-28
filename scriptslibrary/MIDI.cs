@@ -152,7 +152,7 @@ namespace StorybrewScripts
                 if ((result & 0x80) == 0)
                 {
                     i = (int)(p - data);
-                    return result;
+                    return unchecked(result);
                 }
                 result &= 0x7F;
 

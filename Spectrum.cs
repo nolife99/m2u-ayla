@@ -34,7 +34,7 @@ namespace StorybrewScripts
             {
                 var bar = GetLayer("").CreateSprite("sb/p.png", OsbOrigin.Centre, 
                     new Vector2((332 - width / 2) + i * (width / barCount), 380));
-                bar.Color(startTime, new Color4(120, 120, 255, 0));
+                bar.Color(startTime, new Color4(145, 200, 255, 0));
                 bar.Fade(-2475 + i * (689 / barCount), startTime, 0, .6);
                 bar.Fade(endTime + i * (689 / barCount), 173444, .6, 0);
                 bar.Additive(startTime);
