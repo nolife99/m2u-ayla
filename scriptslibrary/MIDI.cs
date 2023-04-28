@@ -4,13 +4,13 @@ using System.IO;
 
 namespace StorybrewScripts
 {
-    internal unsafe class MidiFile
+    public unsafe class MidiFile
     {
-        internal readonly int Format, TicksPerQuarterNote, TracksCount;
-        internal readonly MidiTrack[] Tracks;
+        public readonly int Format, TicksPerQuarterNote, TracksCount;
+        public readonly MidiTrack[] Tracks;
 
-        internal MidiFile(string path) : this(File.ReadAllBytes(path)) {}
-        internal MidiFile(byte[] data)
+        public MidiFile(string path) : this(File.ReadAllBytes(path)) {}
+        public MidiFile(byte[] data)
         {
             var position = 0;
 
@@ -85,7 +85,7 @@ namespace StorybrewScripts
                     var eventType = (byte)(status & 0xF0);
                     var channel = (byte)((status & 0x0F) + 1);
 
-                    var data1 = data[position++];
+                    var data1 = *(data + position++);
                     var data2 = (eventType & 0xE0) != 0xC0 ? *(data + position++) : (byte)0;
 
                     if (eventType == (byte)MidiEventType.NoteOn && data2 == 0) eventType = (byte)MidiEventType.NoteOff;
@@ -129,23 +129,23 @@ namespace StorybrewScripts
 
         static class Reader
         {
-            internal static short Read16(byte* data, ref int i) 
+            public static short Read16(byte* data, ref int i) 
                 => (short)unchecked((*(data + i++) << 8) | *(data + i++));
                             
-            internal static int Read32(byte* data, ref int i) 
+            public static int Read32(byte* data, ref int i) 
                 => unchecked((*(data + i++) << 24) | (*(data + i++) << 16) | (*(data + i++) << 8) | *(data + i++));
 
-            internal static byte Read8(byte* data, ref int i) 
+            public static byte Read8(byte* data, ref int i) 
                 => unchecked(*(data + i++));
 
-            internal static string ReadString(byte* data, ref int i, int length)
+            public static string ReadString(byte* data, ref int i, int length)
             {
                 var result = new string((sbyte*)data, i, length, System.Text.Encoding.ASCII);
                 i += length;
                 return result;
             }
 
-            internal static int ReadVarInt(byte* data, ref int i)
+            public static int ReadVarInt(byte* data, ref int i)
             {
                 var p = data + i;
                 int result = *p++;
@@ -169,27 +169,27 @@ namespace StorybrewScripts
         }
     }
 
-    internal class MidiTrack
+    public class MidiTrack
     {
-        internal int Index;
-        internal List<MidiEvent> MidiEvents = new List<MidiEvent>();
+        public int Index;
+        public List<MidiEvent> MidiEvents = new List<MidiEvent>();
     }
 
-    internal struct MidiEvent
+    public struct MidiEvent
     {
-        internal int Time;
-        internal byte Type, Arg1, Arg2, Arg3;
+        public int Time;
+        public byte Type, Arg1, Arg2, Arg3;
 
-        internal MidiEventType MidiEventType => (MidiEventType)Type;
-        internal MetaEventType MetaEventType => (MetaEventType)Arg1;
+        public MidiEventType MidiEventType => (MidiEventType)Type;
+        public MetaEventType MetaEventType => (MetaEventType)Arg1;
 
-        internal int Channel => Arg1;
-        internal int Note => Arg2;
-        internal int Velocity => Arg3;
-        internal int Value => Arg3;
+        public int Channel => Arg1;
+        public int Note => Arg2;
+        public int Velocity => Arg3;
+        public int Value => Arg3;
     }
 
-    internal enum MidiEventType : byte
+    public enum MidiEventType : byte
     {
         NoteOff = 0x80,
         NoteOn = 0x90,
@@ -201,14 +201,14 @@ namespace StorybrewScripts
         MetaEvent = 0xFF
     }
 
-    internal enum MetaEventType : byte
+    public enum MetaEventType : byte
     {
         Tempo = 0x51,
         TimeSignature = 0x58,
         KeySignature = 0x59
     }
 
-    internal enum NoteName
+    public enum NoteName
     {
         C = 0,
         CSharp = 1,

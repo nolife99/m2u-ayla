@@ -21,7 +21,7 @@ namespace StorybrewScripts
             {'B', "01"}
         };
 
-        const float keyCount = 52, whiteKeySpacing = 640f / keyCount;
+        const float keyCount = 52, keySpacing = 640f / keyCount;
 
         [Configurable] public string MIDIPath = "";
         protected override void Generate()
@@ -32,7 +32,7 @@ namespace StorybrewScripts
             string getKeyFile(string keyType, bool highlight = false)
                 => highlight ? $"sb/k/{keyType}hl.png" : $"sb/k/{keyType}.png";
 
-            var pScale = (float)Math.Round(whiteKeySpacing / 60, 3);
+            var pScale = (float)Math.Round(keySpacing / 60, 3);
 
             #endregion
 
@@ -65,7 +65,7 @@ namespace StorybrewScripts
                     keyFile = new string(chars);
                 }
 
-                var pX = (int)(whiteKeySpacing * i + pScale * (keyCount / 2));
+                var pX = (int)(keySpacing * i + pScale * (keyCount / 2));
 
                 var p = layer.CreateSprite(keyFile, OsbOrigin.TopCentre, new Vector2(pX, 240));
                 p.Scale(-1843, pScale);
@@ -83,7 +83,7 @@ namespace StorybrewScripts
 
                 if (keyFile[keyFile.Length - 5] == '0')
                 {
-                    pX += (int)(whiteKeySpacing * .5f);
+                    pX += (int)(keySpacing * .5f);
 
                     var pb = layer.CreateSprite("sb/k/bb.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
                     pb.Scale(-1843, pScale);
@@ -175,14 +175,14 @@ namespace StorybrewScripts
                     if (length <= 0) continue;
 
                     var noteLength = (int)Math.Round(length * 240f / scrollTime);
-                    var noteWidth = noteName.ToString().Contains("Sharp") ? whiteKeySpacing * .5f : whiteKeySpacing;
+                    var noteWidth = (int)(noteName.ToString().Contains("Sharp") ? keySpacing * .5f : keySpacing);
 
                     var key = $"{noteName}{octave}";
 
                     var n = pool.Get(time - scrollTime, endTime);
-                    if (n.StartTime != double.MaxValue) n.ScaleVec(time - scrollTime, (int)noteWidth, noteLength);
+                    if (n.StartTime != double.MaxValue) n.ScaleVec(time - scrollTime, noteWidth, noteLength);
                     n.Move(time - scrollTime, time, positions[key], 0, positions[key], 240);
-                    n.ScaleVec(time, endTime, (int)noteWidth, noteLength, (int)noteWidth, 0);
+                    n.ScaleVec(time, endTime, noteWidth, noteLength, noteWidth, 0);
 
                     var splashes = highlights[key];
                     splashes.Item1.Fade(time, time, 0, 1);
