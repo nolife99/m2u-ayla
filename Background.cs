@@ -1,11 +1,9 @@
 using OpenTK;
-using StorybrewCommon.Scripting;
 using StorybrewCommon.Storyboarding;
-using System;
 
 namespace StorybrewScripts
 {
-    class Background : StoryboardObjectGenerator
+    class Background : StorybrewCommon.Scripting.StoryboardObjectGenerator
     {
         protected override void Generate()
         {
@@ -27,7 +25,7 @@ namespace StorybrewScripts
             line.ScaleVec(-2000, -1000, 0, 2, 854, 2);
             line.Fade(-2000, .5f);
             line.MoveX(171756, 171756, -107, 747);
-            line.Rotate(171756, 171756, 0, (float)Math.PI);
+            line.Rotate(171756, 171756, 0, (float)System.Math.PI);
             line.ScaleVec(171756, 172863, 854, 2, 0, 2);
             
             var vig = overlay.CreateSprite("sb/v.png", OsbOrigin.Centre, new Vector2(320, 240));

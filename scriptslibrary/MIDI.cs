@@ -31,7 +31,7 @@ namespace StorybrewScripts
 
         static bool ParseMetaEvent(byte* data, ref int i, byte metaEventType, out byte data1, out byte data2)
         {
-            data2 = (byte)0;
+            data2 = 0;
             switch (metaEventType)
             {
                 case (byte)MetaEventType.Tempo:
@@ -87,7 +87,7 @@ namespace StorybrewScripts
                     var channel = (byte)((status & 0x0F) + 1);
 
                     var arg2 = data[position++];
-                    var arg3 = (type & (byte)MidiEventType.PitchBendChange) != (byte)MidiEventType.ProgramChange ? 
+                    var arg3 = (type & (byte)MidiEventType.PitchBendChange) != (byte)MidiEventType.ProgramChange ?
                         data[position++] : (byte)0;
 
                     if (type == (byte)MidiEventType.NoteOn && arg3 == 0) type = (byte)MidiEventType.NoteOff;
@@ -120,13 +120,13 @@ namespace StorybrewScripts
 
     static unsafe class Reader
     {
-        public static short Read16(byte* data, ref int i) 
+        public static short Read16(byte* data, ref int i)
             => (short)((data[i++] << 8) | data[i++]);
 
-        public static int Read32(byte* data, ref int i) 
+        public static int Read32(byte* data, ref int i)
             => (data[i++] << 24) | (data[i++] << 16) | (data[i++] << 8) | data[i++];
 
-        public static byte Read8(byte* data, ref int i) 
+        public static byte Read8(byte* data, ref int i)
             => data[i++];
 
         public static string ReadString(byte* data, ref int i, int length)

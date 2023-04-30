@@ -1,14 +1,12 @@
 using OpenTK;
-using OpenTK.Graphics;
-using StorybrewCommon.Scripting;
 using StorybrewCommon.Storyboarding;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 
 namespace StorybrewScripts
 {
-    class LightMIDI : StoryboardObjectGenerator
+    class LightMIDI : StorybrewCommon.Scripting.StoryboardObjectGenerator
     {
         static readonly char[] keyNames = { 'C', 'D', 'E', 'F', 'G', 'A', 'B' };
         static readonly Dictionary<char, string> keyFiles = new Dictionary<char, string>
@@ -114,18 +112,15 @@ namespace StorybrewScripts
 
             #endregion
 
-            var timer = System.Diagnostics.Stopwatch.StartNew();
-
             CreateNotes(keyPositions, keyHighlights, layer);
-
-            timer.Stop();
-            Log(timer.ElapsedTicks);
         }
         void CreateNotes(
             Dictionary<string, int> positions, Dictionary<string, (OsbSprite, OsbSprite)> highlights, 
             StoryboardSegment layer)
         {
             const int scrollTime = 2500;
+            Vector3 c1 = new Vector3(28f / 51, 35f / 51, 13f / 17),
+                c2 = new Vector3(4f / 17, 4f / 17, 2f / 3);
 
             AddDependency(AssetPath + "/" + MIDIPath);
             var file = new MidiFile(AssetPath + "/" + MIDIPath);
@@ -144,8 +139,8 @@ namespace StorybrewScripts
                 using (var pool = new SpritePool(layer, "sb/p.png", OsbOrigin.BottomCentre, (p, s, e) =>
                 {
                     p.Additive(s);
-                    if (track.Index == 0) p.Color(s, new Color4(140, 175, 195, 0));
-                    else p.Color(s, new Color4(60, 60, 170, 0));
+                    if (track.Index == 0) p.Color(s, c1.X, c1.Y, c1.Z);
+                    else p.Color(s, c2.X, c2.Y, c2.Z);
                 }))
                 for (var i = 0; i < onEvent.Count; ++i)
                 {

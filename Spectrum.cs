@@ -15,12 +15,12 @@ namespace StorybrewScripts
             const int width = 290, barCount = 15;
 
             var heightKeyframe = new KeyframedValue<float>[barCount];
-            for (var i = 0; i < barCount; i++) heightKeyframe[i] = new KeyframedValue<float>();
+            for (var i = 0; i < barCount; ++i) heightKeyframe[i] = new KeyframedValue<float>();
 
             var timeStep = Beatmap.GetTimingPointAt(startTime).BeatDuration / 8;
             for (double time = startTime; time < endTime + timeStep; time += timeStep)
             {
-                var fft = GetFft(time, (int)(barCount * 1.3), null, OsbEasing.InExpo);
+                var fft = GetFft(time, (int)(barCount * 1.3f), null, OsbEasing.InExpo);
                 for (var i = 0; i < barCount; ++i)
                 {
                     var height = Math.Pow(Math.Log10(1 + fft[i] * 450) * 5, 2);
