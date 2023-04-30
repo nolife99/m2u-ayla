@@ -31,7 +31,7 @@ namespace StorybrewScripts
 
             var layer = GetLayer("");
             string getKeyFile(string keyType, bool highlight = false)
-                => highlight ? $"sb/k/{keyType}hl.png" : $"sb/k/{keyType}.png";
+                => highlight ? $"sb/k/{keyType}l.png" : $"sb/k/{keyType}.png";
 
             var pScale = (float)Math.Round(keySpacing / 60, 3);
 
@@ -39,31 +39,25 @@ namespace StorybrewScripts
 
             #region Draw Piano
 
-            var keys = new HashSet<OsbSprite>();
+            var keys = new HashSet<OsbSprite>(88);
             var keyPositions = new Dictionary<string, int>();
             var keyHighlights = new Dictionary<string, (OsbSprite, OsbSprite)>();
 
-            for (int i = 0, keyOctave = 0; i < keyCount; i++)
+            for (int i = 0, keyOctave = 0; i < keyCount; ++i)
             {
                 var keyNameIndex = i % 7 - 2;
-                if (keyNameIndex == 0) keyOctave++;
+                if (keyNameIndex == 0) ++keyOctave;
                 else if (keyNameIndex < 0) keyNameIndex = keyNames.Length + keyNameIndex;
 
                 var keyName = keyNames[keyNameIndex];
                 var keyType = keyFiles[keyName];
                 var keyFile = getKeyFile(keyType);
 
-                if (i == 0)
+                unsafe
                 {
-                    var chars = keyFile.ToCharArray();
-                    chars[chars.Length - 6] = '1';
-                    keyFile = new string(chars);
-                }
-                else if (i == keyCount - 1)
-                {
-                    var chars = keyFile.ToCharArray();
-                    chars[chars.Length - 5] = '1';
-                    keyFile = new string(chars);
+                    fixed (char* pChars = keyFile)
+                        if (i == 0) pChars[keyFile.Length - 6] = '1';
+                        else if (i == keyCount - 1) pChars[keyFile.Length - 5] = '1';
                 }
 
                 var pX = (int)(keySpacing * i + pScale * (keyCount / 2));
@@ -89,7 +83,7 @@ namespace StorybrewScripts
                     var pb = layer.CreateSprite("sb/k/bb.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
                     pb.Scale(-1843, pScale);
 
-                    var pbhl = layer.CreateSprite("sb/k/bbhl.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
+                    var pbhl = layer.CreateSprite("sb/k/bbl.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
                     pbhl.Scale(25, pScale);
 
                     sp = layer.CreateSprite("sb/l.png", OsbOrigin.BottomCentre, new Vector2(pX, 240));
@@ -102,7 +96,7 @@ namespace StorybrewScripts
                 }
             }
 
-            var delay = (float)Beatmap.GetTimingPointAt(25).BeatDuration * 2 / keys.Count;
+            var delay = (float)Beatmap.TimingPoints.First().BeatDuration * 2 / keys.Count;
             var keyTime = 0f;
 
             foreach (var key in keys)
@@ -116,17 +110,24 @@ namespace StorybrewScripts
 
                 keyTime += delay;
             }
+            keys.Clear();
 
             #endregion
 
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+
             CreateNotes(keyPositions, keyHighlights, layer);
+
+            timer.Stop();
+            Log(timer.ElapsedTicks);
         }
         void CreateNotes(
             Dictionary<string, int> positions, Dictionary<string, (OsbSprite, OsbSprite)> highlights, 
             StoryboardSegment layer)
         {
-            var scrollTime = 2500;
-            
+            const int scrollTime = 2500;
+
+            AddDependency(AssetPath + "/" + MIDIPath);
             var file = new MidiFile(AssetPath + "/" + MIDIPath);
             foreach (var track in file.Tracks)
             {
@@ -146,7 +147,7 @@ namespace StorybrewScripts
                     if (track.Index == 0) p.Color(s, new Color4(140, 175, 195, 0));
                     else p.Color(s, new Color4(60, 60, 170, 0));
                 }))
-                for (var i = 0; i < onEvent.Count; i++)
+                for (var i = 0; i < onEvent.Count; ++i)
                 {
                     var noteName = (NoteName)(onEvent[i].Note % 12);
                     var octave = onEvent[i].Note / 12 - 1;
@@ -158,7 +159,7 @@ namespace StorybrewScripts
                     {
                         Log($"Found mismatched note - {noteName}, {(NoteName)(offEvent[i].Note % 12)}");
                         
-                        for (var j = i - 2; j < offEvent.Count; j++) 
+                        for (var j = i - 2; j < offEvent.Count; ++j) 
                         if (onEvent[i].Note == offEvent[j].Note && offEvent[j].Time > time) 
                         {
                             endTime = offEvent[j].Time;
@@ -189,6 +190,7 @@ namespace StorybrewScripts
                     splashes.Item2.Fade(endTime, 0);
                 }
             }
+            positions.Clear();
 
             foreach (var highlight in highlights.Values)
             {

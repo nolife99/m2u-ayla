@@ -21,7 +21,7 @@ namespace StorybrewScripts
             for (double time = startTime; time < endTime + timeStep; time += timeStep)
             {
                 var fft = GetFft(time, (int)(barCount * 1.3), null, OsbEasing.InExpo);
-                for (var i = 0; i < barCount; i++)
+                for (var i = 0; i < barCount; ++i)
                 {
                     var height = Math.Pow(Math.Log10(1 + fft[i] * 450) * 5, 2);
                     if (height < 1) height = 1;
@@ -30,7 +30,7 @@ namespace StorybrewScripts
                 }
             }
 
-            for (var i = 0; i < barCount; i++)
+            for (var i = 0; i < barCount; ++i)
             {
                 var bar = GetLayer("").CreateSprite("sb/p.png", OsbOrigin.Centre, 
                     new Vector2((332 - width / 2) + i * (width / barCount), 380));
