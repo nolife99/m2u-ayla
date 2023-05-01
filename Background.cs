@@ -9,15 +9,16 @@ namespace StorybrewScripts
         {
             var back = GetLayer("");
             var overlay = GetLayer("Overlay");
+            var bitmap = GetMapsetBitmap("bg.jpg");
 
             var bg = back.CreateSprite("bg.jpg", OsbOrigin.Centre, new Vector2(320, 240));
-            bg.Scale(-2475, 854f / GetMapsetBitmap("bg.jpg").Width);
+            bg.Scale(-2475, 854f / bitmap.Width);
             bg.Fade(-1843, -749, 1, 0);
             bg.Fade(171756, 173057, 0, 1);
             bg.Fade(173444, 174992, 1, 0);
 
             var blur = back.CreateSprite("sb/blur.jpg", OsbOrigin.Centre, new Vector2(320, 240));
-            blur.Scale(-2475, 854f / GetMapsetBitmap("bg.jpg").Width);
+            blur.Scale(-2475, 854f / bitmap.Width);
             blur.Fade(-1843, -749, 0, 1);
             blur.Fade(171756, 173057, 1, 0);
 

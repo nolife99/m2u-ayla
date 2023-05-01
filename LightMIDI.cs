@@ -20,7 +20,8 @@ namespace StorybrewScripts
             {'B', "01"}
         };
 
-        const float keyCount = 52, keySpacing = 640f / keyCount;
+        const int keyCount = 52;
+        const float keySpacing = 640f / keyCount;
 
         [Configurable] public string MIDIPath = "";
         protected override void Generate()
@@ -58,7 +59,7 @@ namespace StorybrewScripts
                         else if (i == keyCount - 1) pChars[keyFile.Length - 5] = '1';
                 }
 
-                var pX = (int)(keySpacing * i + pScale * (keyCount / 2));
+                var pX = (int)(keySpacing * i + keyCount * .5f * pScale);
 
                 var p = layer.CreateSprite(keyFile, OsbOrigin.TopCentre, new Vector2(pX, 240));
                 p.Scale(-1843, pScale);
@@ -152,7 +153,7 @@ namespace StorybrewScripts
 
                     if (onEvent[i].Note != offEvent[i].Note) 
                     {
-                        Log($"Found mismatched note - {noteName}, {(NoteName)(offEvent[i].Note % 12)}");
+                        Log($"Found mismatched notes - {noteName}, {(NoteName)(offEvent[i].Note % 12)}");
                         
                         for (var j = i - 2; j < offEvent.Count; ++j) 
                         if (onEvent[i].Note == offEvent[j].Note && offEvent[j].Time > time) 

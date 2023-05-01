@@ -31,12 +31,12 @@ namespace StorybrewScripts
 
         static bool ParseMetaEvent(byte* data, ref int i, byte metaEventType, out byte data1, out byte data2)
         {
-            data2 = 0;
             switch (metaEventType)
             {
                 case (byte)MetaEventType.Tempo:
                     var mspqn = (data[++i] << 16) | (data[++i] << 8) | data[++i];
                     data1 = (byte)(60000000f / mspqn);
+                    data2 = 0;
                     ++i;
                     return true;
 
@@ -56,6 +56,7 @@ namespace StorybrewScripts
                     var length = Reader.ReadVarInt(data, ref i);
                     i += length;
                     data1 = 0;
+                    data2 = 0;
                     return false;
             }
         }
@@ -92,7 +93,7 @@ namespace StorybrewScripts
 
                     if (type == (byte)MidiEventType.NoteOn && arg3 == 0) type = (byte)MidiEventType.NoteOff;
 
-                    track.MidiEvents.Add(new MidiEvent(time, type, channel, arg2, arg2));
+                    track.MidiEvents.Add(new MidiEvent(time, type, channel, arg2, arg3));
                 }
                 else
                 {
@@ -176,7 +177,7 @@ namespace StorybrewScripts
     internal struct MidiEvent
     {
         internal int Time;
-        internal byte Type, Arg1, Arg2, Arg3;
+        byte Type, Arg1, Arg2, Arg3;
 
         internal MidiEventType MidiEventType => (MidiEventType)Type;
         internal MetaEventType MetaEventType => (MetaEventType)Arg1;
