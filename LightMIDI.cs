@@ -78,19 +78,19 @@ namespace StorybrewScripts
                 {
                     pX += (int)(keySpacing * .5f);
 
-                    var pb = layer.CreateSprite("sb/k/bb.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
-                    pb.Scale(-1843, pScale);
+                    p = layer.CreateSprite("sb/k/bb.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
+                    p.Scale(-1843, pScale);
 
-                    var pbhl = layer.CreateSprite("sb/k/bbl.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
-                    pbhl.Scale(25, pScale);
+                    hl = layer.CreateSprite("sb/k/bbl.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
+                    hl.Scale(25, pScale);
 
                     sp = layer.CreateSprite("sb/l.png", OsbOrigin.BottomCentre, new Vector2(pX, 240));
                     sp.ScaleVec(25, .3f, .2f);
 
                     keyFullName = $"{keyName}Sharp{keyOctave}";
-                    keyHighlights[keyFullName] = (pbhl, sp);
+                    keyHighlights[keyFullName] = (hl, sp);
                     keyPositions[keyFullName] = pX;
-                    keys.Add(pb);
+                    keys.Add(p);
                 }
             }
 

@@ -4,13 +4,13 @@ using System.IO;
 
 namespace StorybrewScripts
 {
-    public unsafe class MidiFile
+    internal unsafe class MidiFile
     {
-        public readonly int Format, TicksPerQuarterNote, TracksCount;
-        public readonly MidiTrack[] Tracks;
+        internal readonly int Format, TicksPerQuarterNote, TracksCount;
+        internal readonly MidiTrack[] Tracks;
 
-        public MidiFile(string path) : this(File.ReadAllBytes(path)) {}
-        public MidiFile(byte[] data)
+        internal MidiFile(string path) : this(File.ReadAllBytes(path)) {}
+        internal MidiFile(byte[] data)
         {
             var position = 0;
             fixed (byte* pData = data)
@@ -68,7 +68,7 @@ namespace StorybrewScripts
 
             var track = new MidiTrack(index);
             var time = 0;
-            var status = (byte)0;
+            byte status = 0;
 
             while (position < trackEnd)
             {
@@ -120,23 +120,23 @@ namespace StorybrewScripts
 
     static unsafe class Reader
     {
-        public static short Read16(byte* data, ref int i)
+        internal static short Read16(byte* data, ref int i)
             => (short)((data[i++] << 8) | data[i++]);
 
-        public static int Read32(byte* data, ref int i)
+        internal static int Read32(byte* data, ref int i)
             => (data[i++] << 24) | (data[i++] << 16) | (data[i++] << 8) | data[i++];
 
-        public static byte Read8(byte* data, ref int i)
+        internal static byte Read8(byte* data, ref int i)
             => data[i++];
 
-        public static string ReadString(byte* data, ref int i, int length)
+        internal static string ReadString(byte* data, ref int i, int length)
         {
             var result = new string((sbyte*)data, i, length);
             i += length;
             return result;
         }
 
-        public static int ReadVarInt(byte* data, ref int i)
+        internal static int ReadVarInt(byte* data, ref int i)
         {
             var p = data + i;
             int result = *p++;
@@ -159,13 +159,13 @@ namespace StorybrewScripts
         }
     }
 
-    public class MidiTrack
+    internal class MidiTrack
     {
-        public int Index;
-        public HashSet<MidiEvent> MidiEvents;
-        public HashSet<TextEvent> TextEvents;
+        internal int Index;
+        internal HashSet<MidiEvent> MidiEvents;
+        internal HashSet<TextEvent> TextEvents;
 
-        public MidiTrack(int index)
+        internal MidiTrack(int index)
         {
             Index = index;
             MidiEvents = new HashSet<MidiEvent>();
@@ -173,20 +173,20 @@ namespace StorybrewScripts
         }
     }
 
-    public struct MidiEvent
+    internal struct MidiEvent
     {
-        public int Time;
-        public byte Type, Arg1, Arg2, Arg3;
+        internal int Time;
+        internal byte Type, Arg1, Arg2, Arg3;
 
-        public MidiEventType MidiEventType => (MidiEventType)Type;
-        public MetaEventType MetaEventType => (MetaEventType)Arg1;
+        internal MidiEventType MidiEventType => (MidiEventType)Type;
+        internal MetaEventType MetaEventType => (MetaEventType)Arg1;
 
-        public int Channel => Arg1;
-        public int Note => Arg2;
-        public int Velocity => Arg3;
-        public int Value => Arg3;
+        internal int Channel => Arg1;
+        internal int Note => Arg2;
+        internal int Velocity => Arg3;
+        internal int Value => Arg3;
 
-        public MidiEvent(int time, byte type, byte arg1, byte arg2, byte arg3)
+        internal MidiEvent(int time, byte type, byte arg1, byte arg2, byte arg3)
         {
             Time = time;
             Type = type;
@@ -196,15 +196,15 @@ namespace StorybrewScripts
         }
     }
 
-    public struct TextEvent
+    internal struct TextEvent
     {
-        public int Time;
-        public byte Type;
-        public string Value;
+        internal int Time;
+        internal byte Type;
+        internal string Value;
 
-        public TextEventType TextEventType => (TextEventType)this.Type;
+        internal TextEventType TextEventType => (TextEventType)this.Type;
 
-        public TextEvent(int time, byte type, string value)
+        internal TextEvent(int time, byte type, string value)
         {
             Time = time;
             Type = type;
@@ -212,7 +212,7 @@ namespace StorybrewScripts
         }
     }
 
-    public enum MidiEventType : byte
+    internal enum MidiEventType : byte
     {
         NoteOff = 0x80,
         NoteOn = 0x90,
@@ -224,21 +224,21 @@ namespace StorybrewScripts
         MetaEvent = 0xFF
     }
 
-    public enum TextEventType : byte
+    internal enum TextEventType : byte
     {
         Text = 0x01,
         TrackName = 0x03,
         Lyric = 0x05
     }
 
-    public enum MetaEventType : byte
+    internal enum MetaEventType : byte
     {
         Tempo = 0x51,
         TimeSignature = 0x58,
         KeySignature = 0x59
     }
 
-    public enum NoteName
+    internal enum NoteName
     {
         C = 0,
         CSharp = 1,
