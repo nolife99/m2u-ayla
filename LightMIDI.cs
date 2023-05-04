@@ -169,7 +169,7 @@ namespace StorybrewScripts
                     var length = endTime - time;
                     if (length <= 0) continue;
 
-                    var noteLength = (float)Math.Round(length * 240f / scrollTime, 1);
+                    var noteLength = (int)Math.Round(length * 240f / scrollTime);
                     var noteWidth = (int)(noteName.ToString().Contains("Sharp") ? keySpacing * .5f : keySpacing);
 
                     var key = $"{noteName}{octave}";
