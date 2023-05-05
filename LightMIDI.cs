@@ -21,7 +21,7 @@ namespace StorybrewScripts
         };
 
         const int keyCount = 52;
-        const float keySpacing = 640f / keyCount;
+        const float pWidth = 700, keySpacing = pWidth / keyCount;
 
         [Configurable] public string MIDIPath = "";
         protected override void Generate()
@@ -59,7 +59,7 @@ namespace StorybrewScripts
                         else if (i == keyCount - 1) pChars[keyFile.Length - 5] = '1';
                 }
 
-                var pX = (int)(keySpacing * i + keyCount * .5f * pScale);
+                var pX = (int)(320 - pWidth * .5f + keySpacing * i);
 
                 var p = layer.CreateSprite(keyFile, OsbOrigin.TopCentre, new Vector2(pX, 240));
                 p.Scale(-1843, pScale);
@@ -119,7 +119,7 @@ namespace StorybrewScripts
             Dictionary<string, int> positions, Dictionary<string, (OsbSprite, OsbSprite)> highlights, 
             StoryboardSegment layer)
         {
-            const int scrollTime = 2500;
+            const int scrollTime = 2300;
             Vector3 c1 = new Vector3(28f / 51, 35f / 51, 13f / 17),
                 c2 = new Vector3(4f / 17, 4f / 17, 2f / 3);
 
@@ -148,8 +148,8 @@ namespace StorybrewScripts
                     var noteName = (NoteName)(onEvent[i].Note % 12);
                     var octave = onEvent[i].Note / 12 - 1;
 
-                    var time = onEvent[i].Time;
-                    var endTime = offEvent[i].Time;
+                    float time = onEvent[i].Time;
+                    float endTime = offEvent[i].Time;
 
                     if (onEvent[i].Note != offEvent[i].Note) 
                     {
@@ -163,8 +163,8 @@ namespace StorybrewScripts
                         }
                     }
 
-                    time = (int)(time * offset + 25);
-                    endTime = (int)(endTime * offset + 20);
+                    time = time * offset + 25;
+                    endTime = endTime * offset + 24;
 
                     var length = endTime - time;
                     if (length <= 0) continue;
