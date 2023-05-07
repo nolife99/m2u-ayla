@@ -1,4 +1,5 @@
 using OpenTK;
+using BrewLib.Util;
 using StorybrewCommon.Storyboarding;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ namespace StorybrewScripts
             string getKeyFile(string keyType, bool highlight = false)
                 => highlight ? $"sb/k/{keyType}l.png" : $"sb/k/{keyType}.png";
 
+            var keyRect = BitmapHelper.FindTransparencyBounds(GetMapsetBitmap(getKeyFile("00"))).Size;
             var pScale = (float)Math.Round(keySpacing / 60, 3);
 
             #endregion
@@ -59,7 +61,7 @@ namespace StorybrewScripts
                         else if (i == keyCount - 1) pChars[keyFile.Length - 5] = '1';
                 }
 
-                var pX = (int)(320 - pWidth * .5f + keySpacing * i);
+                var pX = (int)(320 - pWidth * .5f + i * keySpacing + keyRect.Width * pScale * .5f);
 
                 var p = layer.CreateSprite(keyFile, OsbOrigin.TopCentre, new Vector2(pX, 240));
                 p.Scale(-1843, pScale);
@@ -186,12 +188,14 @@ namespace StorybrewScripts
                     splashes.Item2.Fade(endTime, 0);
                 }
             }
+            positions.Clear();
 
             foreach (var highlight in highlights.Values)
             {
                 if (highlight.Item1.CommandCost <= 1) layer.Discard(highlight.Item1);
                 if (highlight.Item2.CommandCost <= 1) layer.Discard(highlight.Item2);
             }
+            highlights.Clear();
         }
     }
 
@@ -313,7 +317,7 @@ namespace StorybrewScripts
         }
     }
 
-    unsafe class Reader
+    unsafe static class Reader
     {
         internal static short Read16(byte* data, ref int i)
             => (short)((data[i++] << 8) | data[i++]);
