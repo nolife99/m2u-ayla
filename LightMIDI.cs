@@ -34,7 +34,7 @@ namespace StorybrewScripts
                 => highlight ? $"sb/k/{keyType}l.png" : $"sb/k/{keyType}.png";
 
             var keyRect = BitmapHelper.FindTransparencyBounds(GetMapsetBitmap(getKeyFile("00"))).Size;
-            var pScale = (float)Math.Round(keySpacing / 60, 3);
+            var pScale = (float)Math.Round(keySpacing / (keyRect.Width - 6), 3);
 
             #endregion
 
@@ -153,9 +153,9 @@ namespace StorybrewScripts
                     float time = onEvent[i].Time;
                     float endTime = offEvent[i].Time;
 
-                    if (onEvent[i].Note != offEvent[i].Note) 
+                    if (onEvent[i].Note != offEvent[i].Note)
                     {
-                        Log($"Found mismatched notes - {noteName}, {(NoteName)(offEvent[i].Note % 12)}");
+                        Log($"Found mismatched notes - {noteName}{octave}, {(NoteName)(offEvent[i].Note % 12)}{octave}");
                         
                         for (var j = i - 2; j < offEvent.Count; ++j) 
                         if (onEvent[i].Note == offEvent[j].Note && offEvent[j].Time > time) 
