@@ -149,13 +149,14 @@ namespace StorybrewScripts
                 {
                     var noteName = (NoteName)(onEvent[i].Note % 12);
                     var octave = onEvent[i].Note / 12 - 1;
+                    var key = $"{noteName}{octave}";
 
                     float time = onEvent[i].Time;
                     float endTime = offEvent[i].Time;
 
                     if (onEvent[i].Note != offEvent[i].Note)
                     {
-                        Log($"Found mismatched notes - {noteName}{octave}, {(NoteName)(offEvent[i].Note % 12)}{octave}");
+                        Log($"Found mismatched notes - {key}, {(NoteName)(offEvent[i].Note % 12)}{offEvent[i].Note / 12 - 1}");
                         
                         for (var j = i - 2; j < offEvent.Count; ++j) 
                         if (onEvent[i].Note == offEvent[j].Note && offEvent[j].Time > time) 
@@ -173,8 +174,6 @@ namespace StorybrewScripts
 
                     var noteLength = (int)Math.Round(length * 240f / scrollTime);
                     var noteWidth = (int)(noteName.ToString().Contains("Sharp") ? keySpacing * .5f : keySpacing);
-
-                    var key = $"{noteName}{octave}";
 
                     var n = pool.Get(time - scrollTime, endTime);
                     if (n.StartTime != double.MaxValue) n.ScaleVec(time - scrollTime, noteWidth, noteLength);
