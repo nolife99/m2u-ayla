@@ -20,7 +20,7 @@ namespace StorybrewScripts
             var timeStep = Beatmap.GetTimingPointAt(startTime).BeatDuration / 8;
             for (double time = startTime; time < endTime + timeStep; time += timeStep)
             {
-                var fft = GetFft(time, (int)(barCount * 1.3f), null, OsbEasing.InExpo);
+                var fft = GetFft(time, (int)(barCount * 1.5f), null, OsbEasing.InExpo);
                 for (var i = 0; i < barCount; ++i)
                 {
                     var height = Math.Pow(Math.Log10(1 + fft[i] * 450) * 5, 2);
@@ -34,7 +34,7 @@ namespace StorybrewScripts
             for (var i = 0; i < barCount; ++i)
             {
                 var bar = GetLayer("").CreateSprite("sb/p.png", OsbOrigin.Centre, new Vector2((int)startX, 380));
-                bar.Color(startTime, new Color4(145, 200, 255, 0));
+                bar.Color(startTime, .57f, .78f, 1);
                 bar.Fade(-2475 + i * (2000f / barCount), startTime, 0, .6);
                 bar.Fade(endTime + i * (689f / barCount), 173444, .6, 0);
                 bar.Additive(startTime);

@@ -31,14 +31,14 @@ namespace StorybrewScripts
 
             var layer = GetLayer("");
             var keyRect = BitmapHelper.FindTransparencyBounds(GetMapsetBitmap(getKeyFile("00"))).Size;
-            var pScale = (float)Math.Round(keySpacing / (keyRect.Width - 6), 3);
+            var pScale = (float)Math.Round(keySpacing / (keyRect.Width - keyCount / 8f), 3);
 
             #endregion
 
             #region Draw Piano
 
             var keys = new HashSet<OsbSprite>(88);
-            var keyPositions = new Dictionary<string, int>();
+            var keyPositions = new Dictionary<string, float>();
             var keyHighlights = new Dictionary<string, (OsbSprite, OsbSprite)>();
 
             for (int i = 0, keyOctave = 0; i < keyCount; ++i)
@@ -58,7 +58,7 @@ namespace StorybrewScripts
                         else if (i == keyCount - 1) pChars[keyFile.Length - 5] = '1';
                 }
 
-                var pX = (int)(320 - pWidth * .5f + i * keySpacing + keyRect.Width * pScale * .5f);
+                var pX = (float)Math.Round(320 - pWidth * .5f + i * keySpacing + keyRect.Width * pScale * .5f, 1);
 
                 var p = layer.CreateSprite(keyFile, OsbOrigin.TopCentre, new Vector2(pX, 240));
                 p.Scale(-1843, pScale);
@@ -67,7 +67,7 @@ namespace StorybrewScripts
                 hl.Scale(25, pScale);
 
                 var sp = layer.CreateSprite("sb/l.png", OsbOrigin.BottomCentre, new Vector2(pX, 240));
-                sp.ScaleVec(25, .6f, .2f);
+                sp.ScaleVec(25, (float)Math.Round(pScale * 2.5f, 2), pScale);
 
                 var keyFullName = $"{keyName}{keyOctave}";
                 keyHighlights[keyFullName] = (hl, sp);
@@ -76,7 +76,7 @@ namespace StorybrewScripts
 
                 if (keyFile[keyFile.Length - 5] == '0')
                 {
-                    pX += (int)(keySpacing * .5f);
+                    pX += (float)Math.Round(keySpacing * .5f, 1);
 
                     p = layer.CreateSprite("sb/k/bb.png", OsbOrigin.TopCentre, new Vector2(pX, 240));
                     p.Scale(-1843, pScale);
@@ -85,7 +85,7 @@ namespace StorybrewScripts
                     hl.Scale(25, pScale);
 
                     sp = layer.CreateSprite("sb/l.png", OsbOrigin.BottomCentre, new Vector2(pX, 240));
-                    sp.ScaleVec(25, .3f, .2f);
+                    sp.ScaleVec(25, (float)Math.Round(pScale * 1.25f, 2), pScale);
 
                     keyFullName = $"{keyName}Sharp{keyOctave}";
                     keyHighlights[keyFullName] = (hl, sp);
@@ -115,7 +115,7 @@ namespace StorybrewScripts
             CreateNotes(keyPositions, keyHighlights, layer);
         }
         void CreateNotes(
-            Dictionary<string, int> positions, Dictionary<string, (OsbSprite, OsbSprite)> highlights, 
+            Dictionary<string, float> positions, Dictionary<string, (OsbSprite, OsbSprite)> highlights, 
             StoryboardSegment layer)
         {
             const int scrollTime = 2300;
@@ -175,10 +175,10 @@ namespace StorybrewScripts
             }
             positions.Clear();
 
-            foreach (var highlight in highlights.Values)
+            foreach (var highlight in highlights.Values.Where(hl => hl.Item1.CommandCount <= 1))
             {
-                if (highlight.Item1.CommandCost <= 1) layer.Discard(highlight.Item1);
-                if (highlight.Item2.CommandCost <= 1) layer.Discard(highlight.Item2);
+                layer.Discard(highlight.Item1);
+                layer.Discard(highlight.Item2);
             }
             highlights.Clear();
         }
