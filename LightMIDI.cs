@@ -30,9 +30,6 @@ namespace StorybrewScripts
             #region Initialize Constants
 
             var layer = GetLayer("");
-            string getKeyFile(string keyType, bool highlight = false)
-                => highlight ? $"sb/k/{keyType}l.png" : $"sb/k/{keyType}.png";
-
             var keyRect = BitmapHelper.FindTransparencyBounds(GetMapsetBitmap(getKeyFile("00"))).Size;
             var pScale = (float)Math.Round(keySpacing / (keyRect.Width - 6), 3);
 
@@ -127,17 +124,12 @@ namespace StorybrewScripts
 
             AddDependency(AssetPath + "/" + MIDIPath);
             var file = new MidiFile(AssetPath + "/" + MIDIPath);
+            var offset = (float)Beatmap.TimingPoints.First().BeatDuration / file.TicksPerQuarterNote;
+
             foreach (var track in file.Tracks)
             {
-                var offEvent = new List<MidiEvent>();
-                var onEvent = new List<MidiEvent>();
-                var offset = (float)Beatmap.TimingPoints.First().BeatDuration / file.TicksPerQuarterNote;
-
-                foreach (var midEvent in track.MidiEvents) switch (midEvent.Type)
-                {
-                    case (byte)MidiEventType.NoteOff: offEvent.Add(midEvent); break;
-                    case (byte)MidiEventType.NoteOn: onEvent.Add(midEvent); break;
-                }
+                var offEvent = track.MidiEvents.Where(ev => ev.Type == (byte)MidiEventType.NoteOff).ToArray();
+                var onEvent = track.MidiEvents.Where(ev => ev.Type == (byte)MidiEventType.NoteOn).ToArray();
 
                 using (var pool = new SpritePool(layer, "sb/p.png", OsbOrigin.BottomCentre, (p, s, e) =>
                 {
@@ -145,25 +137,19 @@ namespace StorybrewScripts
                     if (track.Index == 0) p.Color(s, c1.X, c1.Y, c1.Z);
                     else p.Color(s, c2.X, c2.Y, c2.Z);
                 }))
-                for (var i = 0; i < onEvent.Count; ++i)
+                for (var i = 0; i < onEvent.Length; ++i)
                 {
-                    var noteName = (NoteName)(onEvent[i].Note % 12);
-                    var octave = onEvent[i].Note / 12 - 1;
-                    var key = $"{noteName}{octave}";
+                    var key = createKey(onEvent[i].Note);
 
                     float time = onEvent[i].Time;
                     float endTime = offEvent[i].Time;
 
                     if (onEvent[i].Note != offEvent[i].Note)
                     {
-                        Log($"Found mismatched notes - {key}, {(NoteName)(offEvent[i].Note % 12)}{offEvent[i].Note / 12 - 1}");
-                        
-                        for (var j = i - 2; j < offEvent.Count; ++j) 
-                        if (onEvent[i].Note == offEvent[j].Note && offEvent[j].Time > time) 
-                        {
-                            endTime = offEvent[j].Time;
-                            break;
-                        }
+                        Log($"Found mismatched notes: {key}, {createKey(offEvent[i].Note)}");
+                        endTime = offEvent[Array.FindIndex(
+                            offEvent, i - 2, ev => ev.Note == onEvent[i].Note && ev.Time > time
+                        )].Time;
                     }
 
                     time = time * offset + 25;
@@ -173,7 +159,7 @@ namespace StorybrewScripts
                     if (length <= 0) continue;
 
                     var noteLength = (int)Math.Round(length * 240f / scrollTime);
-                    var noteWidth = (int)(noteName.ToString().Contains("Sharp") ? keySpacing * .5f : keySpacing);
+                    var noteWidth = (int)(key.Contains("Sharp") ? keySpacing * .5f : keySpacing);
 
                     var n = pool.Get(time - scrollTime, endTime);
                     if (n.StartTime != double.MaxValue) n.ScaleVec(time - scrollTime, noteWidth, noteLength);
@@ -196,6 +182,12 @@ namespace StorybrewScripts
             }
             highlights.Clear();
         }
+
+        static string getKeyFile(string keyType, bool highlight = false)
+            => highlight ? $"sb/k/{keyType}l.png" : $"sb/k/{keyType}.png";
+
+        static string createKey(int note) 
+            => $"{(NoteName)(note % 12)}{note / 12 - 1}";
     }
 
     //========================================================//
