@@ -119,8 +119,6 @@ namespace StorybrewScripts
             StoryboardSegment layer)
         {
             const int scrollTime = 2300;
-            Vector3 c1 = new Vector3(28f / 51, 35f / 51, 13f / 17),
-                c2 = new Vector3(4f / 17, 4f / 17, 2f / 3);
 
             AddDependency(AssetPath + "/" + MIDIPath);
             var file = new MidiFile(AssetPath + "/" + MIDIPath);
@@ -134,8 +132,8 @@ namespace StorybrewScripts
                 using (var pool = new SpritePool(layer, "sb/p.png", OsbOrigin.BottomCentre, (p, s, e) =>
                 {
                     p.Additive(s);
-                    if (track.Index == 0) p.Color(s, c1.X, c1.Y, c1.Z);
-                    else p.Color(s, c2.X, c2.Y, c2.Z);
+                    if (track.Index == 0) p.Color(s, 28f / 51, 35f / 51, 13f / 17);
+                    else p.Color(s, 4f / 17, 4f / 17, 2f / 3);
                 }))
                 for (var i = 0; i < onEvent.Length; ++i)
                 {
@@ -190,32 +188,53 @@ namespace StorybrewScripts
             => $"{(NoteName)(note % 12)}{note / 12 - 1}";
     }
 
-    //========================================================//
-    //[================== [ MIDI Parsing ] ==================]//
-    //========================================================//
+    /*
+      =========================================================================================
+      =========================================================================================
+      =============================== <- [ MIDI PARSING ] -> ==================================
+      =========================================================================================
+      =========================================================================================
+    */
+
+    #region MIDI Parsing
+
     unsafe class MidiFile
     {
-        internal readonly short Format, TicksPerQuarterNote, TracksCount;
-        internal readonly MidiTrack[] Tracks;
+        internal short Format { get; private set; }
+        internal short TicksPerQuarterNote { get; private set; }
+        internal short TracksCount { get; private set; }
+        internal MidiTrack[] Tracks { get; private set; }
 
-        internal MidiFile(string path) : this(System.IO.File.ReadAllBytes(path)) {}
+        internal MidiFile(string path)
+        {
+            using (var mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateFromFile(path))
+            using (var accessor = mmf.CreateViewAccessor())
+            {
+                byte* pData = null;
+                accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref pData);
+                ParseHandle(pData);
+                accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+            }
+        }
         internal MidiFile(byte[] data)
         {
+            fixed (byte* pData = data) ParseHandle(pData);
+        }
+        void ParseHandle(byte* pData)
+        {
             var position = 0;
-            fixed (byte* pData = data)
-            {
-                if (Reader.ReadString(pData, ref position, 4) != "MThd") throw new FormatException("Invalid file header (expected MThd)");
-                if (Reader.Read32(pData, ref position) != 6) throw new FormatException("Invalid header length (expected 6)");
 
-                Format = Reader.Read16(pData, ref position);
-                TracksCount = Reader.Read16(pData, ref position);
-                TicksPerQuarterNote = Reader.Read16(pData, ref position);
+            if (Reader.ReadString(pData, ref position, 4) != "MThd") throw new FormatException("Invalid file header (expected MThd)");
+            if (Reader.Read32(pData, ref position) != 6) throw new FormatException("Invalid header length (expected 6)");
 
-                if ((TicksPerQuarterNote & 0x8000) != 0) throw new FormatException("Invalid timing mode (SMPTE timecode not supported)");
+            Format = Reader.Read16(pData, ref position);
+            TracksCount = Reader.Read16(pData, ref position);
+            TicksPerQuarterNote = Reader.Read16(pData, ref position);
 
-                Tracks = new MidiTrack[TracksCount];
-                for (var i = 0; i < TracksCount; ++i) Tracks[i] = ParseTrack(i, pData, ref position);
-            }
+            if ((TicksPerQuarterNote & 0x8000) != 0) throw new FormatException("Invalid timing mode (SMPTE timecode not supported)");
+
+            Tracks = new MidiTrack[TracksCount];
+            for (var i = 0; i < TracksCount; ++i) Tracks[i] = ParseTrack(i, pData, ref position);
         }
 
         static bool ParseMetaEvent(byte* data, ref int i, byte metaEventType, out byte data1, out byte data2)
@@ -439,4 +458,6 @@ namespace StorybrewScripts
         ASharp = 10,
         B = 11
     }
+
+    #endregion
 }
