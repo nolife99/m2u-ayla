@@ -1,8 +1,7 @@
-using OpenTK;
-using OpenTK.Graphics;
 using StorybrewCommon.Scripting;
 using StorybrewCommon.Storyboarding;
 using StorybrewCommon.Animations;
+using System.Numerics;
 using System;
 
 namespace StorybrewScripts
