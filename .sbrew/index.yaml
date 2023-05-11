@@ -2,6 +2,7 @@
 BeatmapId: 4128302
 BeatmapName: "Fazioli"
 Assemblies:
+  - "System.Numerics.dll"
 Layers:
   - "2b231b7a463b430d9c943ea2a888a9ed"
   - "695437001ddf4485aff6c11d12eaacac"

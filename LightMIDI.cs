@@ -1,8 +1,9 @@
-using OpenTK;
 using BrewLib.Util;
 using StorybrewCommon.Storyboarding;
 using System;
+using System.IO.MemoryMappedFiles;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Linq;
 
 namespace StorybrewScripts
@@ -207,13 +208,13 @@ namespace StorybrewScripts
 
         internal MidiFile(string path)
         {
-            using (var mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateFromFile(path))
-            using (var accessor = mmf.CreateViewAccessor())
+            using (var mmf = MemoryMappedFile.CreateFromFile(path, System.IO.FileMode.Open))
+            using (var acc = mmf.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read))
             {
                 byte* pData = null;
-                accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref pData);
+                acc.SafeMemoryMappedViewHandle.AcquirePointer(ref pData);
                 ParseHandle(pData);
-                accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+                acc.SafeMemoryMappedViewHandle.ReleasePointer();
             }
         }
         internal MidiFile(byte[] data)

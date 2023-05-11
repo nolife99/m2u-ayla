@@ -5,7 +5,7 @@ Multithreaded: No
 Config:
   MIDIPath:
     Type: "System.String"
-    Value: "Ayla_-_M2U.mid"
+    Value: "M2U - Ayla.mid"
     DisplayName: "MIDI Path"
   RandomSeed:
     Type: "System.Int32"
