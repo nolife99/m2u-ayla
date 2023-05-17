@@ -201,20 +201,25 @@ namespace StorybrewScripts
 
     unsafe class MidiFile
     {
-        internal short Format { get; private set; }
-        internal short TicksPerQuarterNote { get; private set; }
-        internal short TracksCount { get; private set; }
+        internal int Format { get; private set; }
+        internal int TicksPerQuarterNote { get; private set; }
+        internal int TracksCount { get; private set; }
         internal MidiTrack[] Tracks { get; private set; }
 
         internal MidiFile(string path)
         {
-            using (var mmf = MemoryMappedFile.CreateFromFile(path, System.IO.FileMode.Open))
-            using (var acc = mmf.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read))
+            using (var acc = MemoryMappedFile.CreateFromFile(path).CreateViewAccessor().SafeMemoryMappedViewHandle)
             {
                 byte* pData = null;
-                acc.SafeMemoryMappedViewHandle.AcquirePointer(ref pData);
-                ParseHandle(pData);
-                acc.SafeMemoryMappedViewHandle.ReleasePointer();
+                acc.AcquirePointer(ref pData);
+                try
+                {
+                    ParseHandle(pData);
+                }
+                finally
+                {
+                    acc.ReleasePointer();
+                }
             }
         }
         internal MidiFile(byte[] data)
@@ -225,7 +230,7 @@ namespace StorybrewScripts
         {
             var position = 0;
 
-            if (Reader.ReadString(pData, ref position, 4) != "MThd") throw new FormatException("Invalid file header (expected MThd)");
+            if (!Reader.ReadString(pData, ref position, 4).Contains("MThd")) throw new FormatException("Invalid file header (expected MThd)");
             if (Reader.Read32(pData, ref position) != 6) throw new FormatException("Invalid header length (expected 6)");
 
             Format = Reader.Read16(pData, ref position);
@@ -372,8 +377,8 @@ namespace StorybrewScripts
     class MidiTrack
     {
         internal int Index;
-        internal HashSet<MidiEvent> MidiEvents;
-        internal HashSet<TextEvent> TextEvents;
+        internal ICollection<MidiEvent> MidiEvents;
+        internal ICollection<TextEvent> TextEvents;
 
         internal MidiTrack(int index)
         {
