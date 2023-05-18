@@ -31,8 +31,8 @@ namespace StorybrewScripts
             #region Initialize Constants
 
             var layer = GetLayer("");
-            var keyRect = BitmapHelper.FindTransparencyBounds(GetMapsetBitmap(getKeyFile("00"))).Size;
-            var pScale = (float)Math.Round(keySpacing / (keyRect.Width - keyCount / 8f), 3);
+            var keyRect = BitmapHelper.FindTransparencyBounds(GetMapsetBitmap(getKeyFile("00")));
+            var pScale = (float)Math.Round(keySpacing / (keyRect.Width - keyCount / 9f), 3);
 
             #endregion
 
@@ -201,46 +201,38 @@ namespace StorybrewScripts
 
     unsafe class MidiFile
     {
-        internal int Format { get; private set; }
-        internal int TicksPerQuarterNote { get; private set; }
-        internal int TracksCount { get; private set; }
-        internal MidiTrack[] Tracks { get; private set; }
+        internal readonly int Format, TicksPerQuarterNote, TracksCount;
+        internal readonly MidiTrack[] Tracks;
 
         internal MidiFile(string path)
         {
-            using (var acc = MemoryMappedFile.CreateFromFile(path).CreateViewAccessor().SafeMemoryMappedViewHandle)
+            byte* data = null;
+            
+            using (var file = MemoryMappedFile.CreateFromFile(path)) using (var acc = file.CreateViewAccessor())
+            using (var handle = acc.SafeMemoryMappedViewHandle)
             {
-                byte* pData = null;
-                acc.AcquirePointer(ref pData);
+                handle.AcquirePointer(ref data);
                 try
                 {
-                    ParseHandle(pData);
+                    var position = 0;
+
+                    if (!Reader.ReadString(data, ref position, 4).Contains("MThd")) throw new FormatException("Invalid file header (expected MThd)");
+                    if (Reader.Read32(data, ref position) != 6) throw new FormatException("Invalid header length (expected 6)");
+
+                    Format = Reader.Read16(data, ref position);
+                    TracksCount = Reader.Read16(data, ref position);
+                    TicksPerQuarterNote = Reader.Read16(data, ref position);
+
+                    if ((TicksPerQuarterNote & 0x8000) != 0) throw new FormatException("Invalid timing mode (SMPTE timecode not supported)");
+
+                    Tracks = new MidiTrack[TracksCount];
+                    for (var i = 0; i < TracksCount; ++i) Tracks[i] = ParseTrack(i, data, ref position);
                 }
                 finally
                 {
-                    acc.ReleasePointer();
+                    handle.ReleasePointer();
                 }
             }
-        }
-        internal MidiFile(byte[] data)
-        {
-            fixed (byte* pData = data) ParseHandle(pData);
-        }
-        void ParseHandle(byte* pData)
-        {
-            var position = 0;
-
-            if (!Reader.ReadString(pData, ref position, 4).Contains("MThd")) throw new FormatException("Invalid file header (expected MThd)");
-            if (Reader.Read32(pData, ref position) != 6) throw new FormatException("Invalid header length (expected 6)");
-
-            Format = Reader.Read16(pData, ref position);
-            TracksCount = Reader.Read16(pData, ref position);
-            TicksPerQuarterNote = Reader.Read16(pData, ref position);
-
-            if ((TicksPerQuarterNote & 0x8000) != 0) throw new FormatException("Invalid timing mode (SMPTE timecode not supported)");
-
-            Tracks = new MidiTrack[TracksCount];
-            for (var i = 0; i < TracksCount; ++i) Tracks[i] = ParseTrack(i, pData, ref position);
         }
 
         static bool ParseMetaEvent(byte* data, ref int i, byte metaEventType, out byte data1, out byte data2)
