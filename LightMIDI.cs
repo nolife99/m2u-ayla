@@ -1,10 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.IO.MemoryMappedFiles;
+using System.Linq;
+using System.Numerics;
 using BrewLib.Util;
 using StorybrewCommon.Storyboarding;
-using System;
-using System.IO.MemoryMappedFiles;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Linq;
+using StorybrewCommon.Util;
 
 namespace StorybrewScripts
 {
@@ -31,7 +32,7 @@ namespace StorybrewScripts
             #region Initialize Constants
 
             var layer = GetLayer("");
-            var keyRect = BitmapHelper.FindTransparencyBounds(GetMapsetBitmap(getKeyFile("00")));
+            var keyRect = BitmapHelper.FindTransparencyBounds(GetMapsetBitmap(getKeyFile("00"))).Size;
             var pScale = (float)Math.Round(keySpacing / (keyRect.Width - keyCount / 9f), 3);
 
             #endregion
@@ -39,8 +40,8 @@ namespace StorybrewScripts
             #region Draw Piano
 
             var keys = new HashSet<OsbSprite>(88);
-            var keyPositions = new Dictionary<string, float>();
-            var keyHighlights = new Dictionary<string, (OsbSprite, OsbSprite)>();
+            var keyPositions = new DisposableNativeDictionary<string, float>();
+            var keyHighlights = new DisposableNativeDictionary<string, (OsbSprite, OsbSprite)>();
 
             for (int i = 0, keyOctave = 0; i < keyCount; ++i)
             {
@@ -116,7 +117,7 @@ namespace StorybrewScripts
             CreateNotes(keyPositions, keyHighlights, layer);
         }
         void CreateNotes(
-            Dictionary<string, float> positions, Dictionary<string, (OsbSprite, OsbSprite)> highlights, 
+            DisposableNativeDictionary<string, float> positions, DisposableNativeDictionary<string, (OsbSprite, OsbSprite)> highlights, 
             StoryboardSegment layer)
         {
             const int scrollTime = 2300;
@@ -127,8 +128,14 @@ namespace StorybrewScripts
 
             foreach (var track in file.Tracks)
             {
-                var offEvent = track.MidiEvents.Where(ev => ev.Type == (byte)MidiEventType.NoteOff).ToArray();
-                var onEvent = track.MidiEvents.Where(ev => ev.Type == (byte)MidiEventType.NoteOn).ToArray();
+                var offEvent = new List<MidiEvent>();
+                var onEvent = new List<MidiEvent>();
+
+                foreach (var ev in track.MidiEvents) switch (ev.Type)
+                {
+                    case (byte)MidiEventType.NoteOff: offEvent.Add(ev); break;
+                    case (byte)MidiEventType.NoteOn: onEvent.Add(ev); break;
+                }
 
                 using (var pool = new SpritePool(layer, "sb/p.png", OsbOrigin.BottomCentre, (p, s, e) =>
                 {
@@ -136,7 +143,7 @@ namespace StorybrewScripts
                     if (track.Index == 0) p.Color(s, 28f / 51, 35f / 51, 13f / 17);
                     else p.Color(s, 4f / 17, 4f / 17, 2f / 3);
                 }))
-                for (var i = 0; i < onEvent.Length; ++i)
+                for (var i = 0; i < onEvent.Count; ++i)
                 {
                     var key = createKey(onEvent[i].Note);
 
@@ -146,8 +153,8 @@ namespace StorybrewScripts
                     if (onEvent[i].Note != offEvent[i].Note)
                     {
                         Log($"Found mismatched notes: {key}, {createKey(offEvent[i].Note)}");
-                        endTime = offEvent[Array.FindIndex(
-                            offEvent, i - 2, ev => ev.Note == onEvent[i].Note && ev.Time > time
+                        endTime = offEvent[offEvent.FindIndex(
+                            i - 2, ev => ev.Note == onEvent[i].Note && ev.Time > time
                         )].Time;
                     }
 
@@ -172,14 +179,14 @@ namespace StorybrewScripts
                     splashes.Item2.Fade(endTime, 0);
                 }
             }
-            positions.Clear();
+            positions.Dispose();
 
-            foreach (var highlight in highlights.Values.Where(hl => hl.Item1.CommandCount <= 1))
+            foreach (var highlight in highlights.Values) if (highlight.Item1.CommandCount < 2)
             {
                 layer.Discard(highlight.Item1);
                 layer.Discard(highlight.Item2);
             }
-            highlights.Clear();
+            highlights.Dispose();
         }
 
         static string getKeyFile(string keyType, bool highlight = false)
