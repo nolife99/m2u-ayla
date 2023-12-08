@@ -1,26 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net481</TargetFramework>
-    <Configurations>Output</Configurations>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <RootNamespace>StorybrewScripts</RootNamespace>
     <AssemblyName>storyboard</AssemblyName>
+    <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Platforms>AnyCPU;x86</Platforms>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <BaseOutputPath>..\..\cache\bin\</BaseOutputPath>
     <BaseIntermediateOutputPath>..\..\cache\obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Output|AnyCPU' ">
-    <PlatformTarget>AnyCPU;x86</PlatformTarget>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenTK">
-      <HintPath>..\..\OpenTK.dll</HintPath>
+    <Reference Include="osuTK">
+      <HintPath>..\..\osuTK.dll</HintPath>
     </Reference>
     <Reference Include="BrewLib">
       <HintPath>..\..\BrewLib.dll</HintPath>
@@ -28,6 +22,13 @@
     <Reference Include="StorybrewCommon">
       <HintPath>..\..\StorybrewCommon.dll</HintPath>
     </Reference>
+    <Reference Include="StorybrewEditor">
+      <HintPath>..\..\StorybrewEditor.dll</HintPath>
+    </Reference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="Melanchall.DryWetMidi">
+      <HintPath>scriptslibrary\Melanchall.DryWetMidi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
