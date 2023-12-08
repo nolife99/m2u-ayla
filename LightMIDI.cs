@@ -1,10 +1,9 @@
-using BrewLib.Util;
-using StorybrewCommon.Storyboarding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BrewLib.Util;
+using StorybrewCommon.Storyboarding;
 using StorybrewCommon.Storyboarding.Util;
-using System.IO;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 
